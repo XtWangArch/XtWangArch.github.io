@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Xitao Wang - Architectural Portfolio</title>
+    <meta
+      name="description"
+      content="Xitao Wang architectural portfolio: selected academic, professional, research, photography, and videography work."
+    >
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Alice&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20260526-02">
+  </head>
+  <body>
+    <header class="site-header" aria-label="Primary navigation">
+      <a class="brand" href="#profile" aria-label="Xitao Wang home">
+        <span>Xitao Wang</span>
+        <small>Architectural Portfolio</small>
+      </a>
+      <nav class="top-nav">
+        <a href="#profile">Profile</a>
+        <a href="#selected-works">Selected Works</a>
+        <a href="#timeline">Experience</a>
+        <a href="#other-work">Other Work</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </header>
+
+    <nav class="section-rail" aria-label="Page section progress">
+      <div class="rail-track" aria-hidden="true">
+        <span id="rail-progress"></span>
+      </div>
+      <a href="#profile" data-section-link="profile"><span>01</span>Profile</a>
+      <a href="#selected-works" data-section-link="selected-works"><span>02</span>Works</a>
+      <a href="#timeline" data-section-link="timeline"><span>03</span>Exp</a>
+      <a href="#other-work" data-section-link="other-work"><span>04</span>Other</a>
+      <a href="#contact" data-section-link="contact"><span>05</span>Contact</a>
+    </nav>
+
+    <main>
+      <section id="profile" class="section hero-section" data-section data-snap-stop>
+        <div class="hero-grid">
+          <div class="hero-title">
+            <img class="hero-logo" src="assets/images/COVER.svg" alt="Xitao Wang Portfolio">
+          </div>
+          <div class="hero-cover" aria-label="Portfolio cover image placeholder">
+            <div class="visual-placeholder hero-visual">
+              <span>Selected Architectural Work</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="profile-intro" class="section profile-panel" data-snap-stop>
+        <div class="section-marker profile-marker">
+          <div class="section-kicker">01 Profile / Overview</div>
+        </div>
+        <div class="profile-panel-media" aria-label="Profile image placeholder">
+          <div class="visual-placeholder profile-visual">
+            <span>Profile Image</span>
+          </div>
+        </div>
+        <div class="profile-panel-copy">
+          <div class="profile-page-title">
+            <h2>Xitao Wang</h2>
+            <div class="pronunciation profile-pronunciation">
+              <button type="button" aria-describedby="profile-pronunciation-tip">
+                * How to pronounce it?
+              </button>
+              <span id="profile-pronunciation-tip" role="tooltip">
+                Shee-Tao Wang
+              </span>
+            </div>
+          </div>
+          <div class="hero-copy">
+            <p>
+              Hello! I'm Xitao Wang. First of all, thank you for reading this. I would like to share my experience and background with you, and I'm very much looking forward to contributing my abilities to you (that is, working with you). Thank you for taking the time to consider my application, here is some of my works below.
+            </p>
+            <p>
+              I am an architecture student with international academic and professional experience in the UK, Italy, China, and Japan. I am currently pursuing a Master of Architecture degree at the Manchester School of Architecture, and expect to graduate in the summer of 2026 with RIBA Part 2 certification.
+            </p>
+            <details class="more-about">
+              <summary>More about me &gt;&gt;</summary>
+              <p>
+                My view on architecture is fluid, but what remains constant is my belief that the space in which people live reshapes their character, further alters the relationships between people, and thus reconstructs the form of society. I have a deep interest in humanities, history, and the natural environment, which motivates me to perceive the world through firsthand fieldwork, and to observe and modify the nearby spaces through my lens and my design methodology.
+              </p>
+            </details>
+            <div class="button-row hero-actions">
+              <a class="button accent" href="cv.html?return=profile-intro">View CV</a>
+              <a class="button" href="assets/pdfs/Xitao_Wang_CV.pdf" data-download="cv" download>
+                Download CV
+              </a>
+              <a class="button" href="#" data-social="msa" target="_blank" rel="noreferrer">
+                MSA Graduate Page
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="selected-works" class="section" data-section data-snap-stop>
+        <div class="section-marker">
+          <div class="section-kicker">02 Selected Works</div>
+        </div>
+        <div id="work-groups" class="work-groups"></div>
+      </section>
+
+      <section id="timeline" class="section" data-section>
+        <div class="section-marker">
+          <div class="section-kicker">03 Experience</div>
+        </div>
+        <div id="timeline-list" class="timeline-board"></div>
+      </section>
+
+      <section id="other-work" class="section" data-section>
+        <div class="section-marker">
+          <div class="section-kicker">04 Other Work</div>
+        </div>
+        <section class="subsection" aria-labelledby="photography-title">
+          <div class="subsection-heading">
+            <h3 id="photography-title">Photography</h3>
+            <a class="text-link" id="instagram-link" href="#" target="_blank" rel="noreferrer">
+              Instagram
+            </a>
+          </div>
+          <div id="photo-wall" class="photo-wall"></div>
+        </section>
+
+        <section class="subsection" aria-labelledby="videography-title">
+          <div class="subsection-heading">
+            <h3 id="videography-title">Videography</h3>
+            <a class="text-link" id="youtube-link" href="#" target="_blank" rel="noreferrer">
+              YouTube
+            </a>
+          </div>
+          <div id="video-feature" class="video-feature"></div>
+          <div id="video-cards" class="video-cards"></div>
+        </section>
+      </section>
+
+      <section id="contact" class="section contact-section" data-section>
+        <div class="section-marker">
+          <div class="section-kicker">05 Contact</div>
+        </div>
+        <div class="contact-grid">
+          <div>
+            <h2>Selected work, CV, and contact.</h2>
+            <div class="button-row">
+              <a class="button accent" href="cv.html?return=contact">
+                View CV
+              </a>
+              <a class="button" href="assets/pdfs/Xitao_Wang_CV.pdf" data-download="cv" download>
+                Download CV
+              </a>
+              <a class="button" href="#" data-social="msa" target="_blank" rel="noreferrer">
+                MSA Graduate Page
+              </a>
+            </div>
+          </div>
+          <address class="contact-links">
+            <a href="mailto:xitao.wang@example.com">xitao.wang@example.com</a>
+            <a href="#" data-social="linkedin" target="_blank" rel="noreferrer">LinkedIn</a>
+            <a href="#" data-social="instagram" target="_blank" rel="noreferrer">Instagram</a>
+            <a href="#" data-social="youtube" target="_blank" rel="noreferrer">YouTube</a>
+            <a href="#" data-social="msa" target="_blank" rel="noreferrer">MSA Student Page</a>
+          </address>
+        </div>
+      </section>
+    </main>
+
+    <script src="assets/js/site-data.js?v=20260521-35"></script>
+    <script src="assets/js/shared.js?v=20260521-22"></script>
+    <script src="assets/js/main.js?v=20260525-01"></script>
+  </body>
+</html>

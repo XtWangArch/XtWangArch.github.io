@@ -1,0 +1,6 @@
+{
+  "git.path": "D:\\Software\\Git\\cmd\\git.exe",
+  "terminal.integrated.env.windows": {
+    "Path": "${env:Path};D:\\Software\\Git\\cmd"
+  }
+}
