@@ -1668,6 +1668,12 @@ p {
 }
 
 @media (max-width: 980px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
   .hero-grid,
   .profile-panel,
   .section-heading,
@@ -1770,8 +1776,29 @@ p {
 
   main,
   .detail-main {
+    width: 100%;
+    max-width: 100%;
     padding-left: var(--gutter);
     padding-right: var(--gutter);
+    overflow-x: hidden;
+  }
+
+  #selected-works,
+  .work-groups,
+  .work-group,
+  .project-grid,
+  .project-card,
+  .project-media,
+  .project-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .project-media {
+    flex: 0 0 auto;
+    height: auto;
+    aspect-ratio: 4 / 3;
   }
 
   .gallery-feature {

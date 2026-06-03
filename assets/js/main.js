@@ -216,7 +216,6 @@
                   : `<a href="${video.url}" target="_blank" rel="noreferrer">${mediaMarkup(video.thumbnail, video.title)}</a>`
               }
             </div>
-            <h4>${video.title}</h4>
             <a class="text-link" href="${video.url}" target="_blank" rel="noreferrer">Watch on YouTube</a>
           </article>
         `)
