@@ -990,7 +990,7 @@ p {
 
 .contact-links {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   font-style: normal;
 }
 
@@ -1003,6 +1003,50 @@ p {
 .contact-links a:hover {
   color: var(--accent);
   border-color: var(--accent);
+}
+
+.contact-cta {
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  margin-bottom: clamp(22px, 4vw, 42px);
+  text-align: center;
+}
+
+.contact-cta p {
+  margin: 0;
+  max-width: 32ch;
+  color: var(--ink);
+  font-size: clamp(18px, 2.2vw, 32px);
+  line-height: 1.12;
+}
+
+.contact-email-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(100%, 260px);
+  min-height: 62px;
+  padding: 18px 30px;
+  border: 1px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--font-note);
+  font-size: 13px;
+  text-transform: uppercase;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 180ms ease;
+}
+
+.contact-links .contact-email-button {
+  border-bottom: 1px solid var(--ink);
+  padding-bottom: 18px;
+}
+
+.contact-email-button:hover {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--paper);
+  transform: translateY(-2px);
 }
 
 .section-rail {
