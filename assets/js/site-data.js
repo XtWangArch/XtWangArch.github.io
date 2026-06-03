@@ -71,8 +71,9 @@ window.portfolioData = {
       gallery: [
         { label: "Impression", image: "assets/images/projects/academic-02/project2_impression.jpg", caption: "Impression of the site." },
         { label: "Detail", image: "assets/images/projects/academic-02/project2_detail.jpg", caption: "Construction detail design (team work)" },
-        { label: "Detail Model", image: "assets/images/projects/academic-02/project2_detailmodel.png", caption: "Detail model." },
-        { label: "Key Plan", image: "assets/images/projects/academic-02/project2_keyplan.jpg", caption: "Key plan." },
+        { label: "Landscape Design", image: "assets/images/projects/academic-02/project2_landscapedesign1.jpg", caption: "Landscape design." },
+        { label: "Landscape Design", image: "assets/images/projects/academic-02/project2_landscapedesign2.jpg", caption: "Landscape design." },
+        { label: "Key Plan", image: "assets/images/projects/academic-02/project2_plan.jpg", caption: "Key plan." },
         { label: "Landscape1", image: "assets/images/projects/academic-02/project2_landscape1.jpg", caption: "Landscape view." },
         { label: "Landscape2", image: "assets/images/projects/academic-02/project2_landscape2.jpg", caption: "Landscape view" },
         { label: "Section", image: "assets/images/projects/academic-02/project2_section.jpg", caption: "Perspective sectional drawing" },

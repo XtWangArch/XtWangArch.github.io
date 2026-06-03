@@ -177,6 +177,10 @@
         </a>
       </nav>
 
+      <div class="project-bottom-back">
+        <a class="text-link" href="index.html#work-${project.id}">Back to Selected Works</a>
+      </div>
+
       <div class="image-lightbox" id="image-lightbox" aria-hidden="true">
         <button class="image-lightbox-close" type="button" aria-label="Close image preview">Close</button>
         <button class="image-lightbox-nav image-lightbox-prev" type="button" aria-label="Previous image">Previous</button>
