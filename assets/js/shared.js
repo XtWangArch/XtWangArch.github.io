@@ -1,4 +1,35 @@
 (function () {
+  const escapeAttribute = (value) => String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  window.portfolioMedia = {
+    attributes(source, sizes = "100vw") {
+      const image = window.portfolioImageManifest?.[source];
+      if (!image) return `src="${escapeAttribute(source)}" decoding="async"`;
+
+      const preferred = image.sources.find((item) => item.width >= 960) || image.sources.at(-1);
+      const srcset = image.sources.map((item) => `${escapeAttribute(item.src)} ${item.width}w`).join(", ");
+      return `src="${escapeAttribute(preferred.src)}" srcset="${srcset}" sizes="${escapeAttribute(sizes)}" width="${image.width}" height="${image.height}" decoding="async"`;
+    }
+  };
+
+  window.portfolioUI = {
+    reducedMotion: () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    headerHeight: () => document.querySelector(".site-header")?.getBoundingClientRect().height || 0
+  };
+
+  const header = document.querySelector(".site-header");
+  if (header) {
+    const measureHeader = () => {
+      document.documentElement.style.setProperty("--header-height", `${Math.ceil(header.getBoundingClientRect().height)}px`);
+    };
+    measureHeader();
+    new ResizeObserver(measureHeader).observe(header);
+  }
+
   const data = window.portfolioData;
   if (!data) return;
 

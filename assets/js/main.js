@@ -7,9 +7,9 @@
 
   const text = (value, fallback = "") => value || fallback;
 
-  function mediaMarkup(image, label) {
+  function mediaMarkup(image, label, sizes = "100vw") {
     if (image) {
-      return `<img src="${image}" alt="${label}" loading="lazy">`;
+      return `<img ${window.portfolioMedia.attributes(image, sizes)} alt="${label}" loading="lazy">`;
     }
 
     return `<div class="visual-placeholder" aria-label="${label}"><span>${label}</span></div>`;
@@ -27,7 +27,7 @@
     return `
       <article id="work-${project.id}" class="project-card ${alignment}" data-project-id="${project.id}" data-snap-stop data-snap-kind="project"${snapAnchor}>
         <a class="project-media" href="${href}" aria-label="View ${project.title}">
-          ${mediaMarkup(project.cover, project.title)}
+          ${mediaMarkup(project.cover, project.title, "(max-width: 980px) calc(100vw - 40px), 60vw")}
           <span class="project-media-title">${project.title}</span>
         </a>
         <a class="project-content" href="${href}" aria-label="View ${project.title}">
@@ -75,6 +75,16 @@
     const target = document.getElementById(`work-${match[1]}`);
     if (!target) return;
 
+    let cancelled = false;
+    const userInput = new AbortController();
+    const cancelAlignment = () => {
+      cancelled = true;
+      userInput.abort();
+    };
+    ["wheel", "touchstart", "pointerdown", "keydown"].forEach((type) => {
+      window.addEventListener(type, cancelAlignment, { passive: true, signal: userInput.signal });
+    });
+
     const anchorId = target.dataset.snapAnchor;
     const anchor = anchorId ? document.getElementById(anchorId) : null;
     const computeReturnTop = () => {
@@ -102,6 +112,7 @@
     };
 
     const alignToProject = () => {
+      if (cancelled) return;
       const originalScrollBehavior = document.documentElement.style.scrollBehavior;
       document.documentElement.style.scrollBehavior = "auto";
       window.scrollTo({ top: computeReturnTop(), behavior: "instant" });
@@ -120,6 +131,7 @@
       window.setTimeout(alignToProject, delay);
     });
     window.addEventListener("load", alignToProject, { once: true });
+    window.setTimeout(cancelAlignment, 1600);
   }
 
   function renderTimeline() {
@@ -186,7 +198,7 @@
         .slice(0, 16)
         .map((photo) => `
           <a class="photo-tile" href="${photographyUrl}" target="_blank" rel="noreferrer">
-            ${mediaMarkup(photo.image, photo.title)}
+            ${mediaMarkup(photo.image, photo.title, "(max-width: 980px) calc(100vw - 40px), calc(100vw - 264px)")}
           </a>
         `)
         .join("");
@@ -249,6 +261,54 @@
     document.body.classList.toggle("has-scrolled", window.scrollY > 24);
   }
 
+  function setupProfileLayout() {
+    const panel = document.querySelector(".profile-panel");
+    const image = panel?.querySelector(".profile-panel-media");
+    if (!image) return;
+
+    const alignFrames = () => {
+      panel.style.setProperty("--profile-frame-size", `${image.getBoundingClientRect().width}px`);
+    };
+    alignFrames();
+    new ResizeObserver(alignFrames).observe(image);
+  }
+
+  function setupMoreAbout() {
+    const disclosure = document.querySelector(".more-about");
+    const summary = disclosure?.querySelector("summary");
+    const content = disclosure?.querySelector("p");
+    if (!summary || !content) return;
+
+    summary.addEventListener("click", (event) => {
+      if (disclosure.open || !disclosure.animate) return;
+      event.preventDefault();
+      const startHeight = disclosure.getBoundingClientRect().height;
+      const focusWasOnSummary = document.activeElement === summary;
+      disclosure.open = true;
+      const endHeight = disclosure.getBoundingClientRect().height;
+      if (focusWasOnSummary) {
+        content.tabIndex = -1;
+        content.focus({ preventScroll: true });
+      }
+      const finish = () => {
+        disclosure.style.overflow = "";
+      };
+      if (window.portfolioUI.reducedMotion()) {
+        finish();
+        return;
+      }
+
+      // Animating the disclosure height keeps the following buttons in normal flow.
+      disclosure.style.overflow = "hidden";
+      const expansion = disclosure.animate([
+        { height: `${startHeight}px` },
+        { height: `${endHeight}px` }
+      ], { duration: 520, easing: "cubic-bezier(0.16, 1, 0.3, 1)" });
+      content.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 420, easing: "ease-out" });
+      expansion.finished.then(finish, finish);
+    });
+  }
+
   function setupReveals() {
     const targets = [
       ".hero-copy",
@@ -292,7 +352,7 @@
     let suppressUpUntil = 0;
 
     function headerHeight() {
-      return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-height")) || 0;
+      return window.portfolioUI.headerHeight();
     }
 
     function visualCenterTop(stop) {
@@ -385,15 +445,25 @@
 
       isSnapping = true;
       wheelTotal = 0;
-      window.scrollTo({ top: stopTop(target), behavior: "smooth" });
+      const reducedMotion = window.portfolioUI.reducedMotion();
+      window.scrollTo({ top: stopTop(target), behavior: reducedMotion ? "instant" : "smooth" });
       window.setTimeout(() => {
         window.scrollTo({ top: stopTop(target), behavior: "instant" });
         isSnapping = false;
-      }, 850);
+      }, reducedMotion ? 0 : 850);
     }
 
     window.addEventListener("wheel", (event) => {
-      if (window.innerWidth <= 720) return;
+      if (window.innerWidth <= 980 || event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+
+      const profile = document.querySelector("#profile-intro");
+      const profileTop = pageTop(profile);
+      const profileReadingEnd = profileTop + profile.offsetHeight - window.innerHeight;
+      const readingProfile = window.scrollY >= profileTop - 2 && window.scrollY <= profileReadingEnd + 2;
+      if (readingProfile && ((event.deltaY > 0 && window.scrollY < profileReadingEnd - 2) || (event.deltaY < 0 && window.scrollY > profileTop + 2))) {
+        wheelTotal = 0;
+        return;
+      }
 
       if (isSnapping) {
         event.preventDefault();
@@ -445,7 +515,7 @@
 
     hero.addEventListener("click", (event) => {
       if (event.target.closest("button, a")) return;
-      window.scrollTo({ top: target.offsetTop, behavior: "smooth" });
+      window.scrollTo({ top: target.offsetTop, behavior: window.portfolioUI.reducedMotion() ? "instant" : "smooth" });
     });
   }
 
@@ -463,6 +533,8 @@
     setupProjectReturn();
     renderTimeline();
     renderOtherWork();
+    setupProfileLayout();
+    setupMoreAbout();
     setActiveSection();
     setupReveals();
     setupIntroSnap();

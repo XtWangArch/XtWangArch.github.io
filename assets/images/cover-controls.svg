@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <!-- Lucide icons, ISC license: https://lucide.dev/license -->
+  <symbol id="pause" viewBox="0 0 24 24">
+    <rect x="14" y="3" width="4" height="18" rx="1"/>
+    <rect x="6" y="3" width="4" height="18" rx="1"/>
+  </symbol>
+  <symbol id="play" viewBox="0 0 24 24">
+    <path d="m6 3 14 9-14 9V3Z"/>
+  </symbol>
+</svg>

@@ -12,9 +12,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alice&family=Lora:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.typekit.net/ckj5ktb.css">
-    <link rel="stylesheet" href="assets/css/styles.css?v=20260604-02">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20261031-05">
   </head>
-  <body>
+  <body class="home-page">
     <header class="site-header" aria-label="Primary navigation">
       <a class="brand" href="#profile" aria-label="Xitao Wang home">
         <span>Xitao Wang</span>
@@ -43,10 +43,26 @@
     <main>
       <section id="profile" class="section hero-section" data-section>
         <div class="hero-grid">
-          <div class="hero-title">
+          <a class="hero-title" href="#profile-intro" aria-label="Enter Xitao Wang's portfolio">
             <img class="hero-logo" src="assets/images/COVER.svg" alt="Xitao Wang Portfolio">
+          </a>
+          <div class="hero-cover" aria-hidden="true">
+            <div class="hero-cover-footage">
+              <video
+                class="hero-cover-video"
+                autoplay muted loop playsinline preload="metadata"
+                poster="assets/video/cover-poster.jpg"
+                data-desktop-src="assets/video/cover-desktop.mp4"
+                data-mobile-src="assets/video/cover-mobile.mp4"
+                tabindex="-1"
+              ></video>
+            </div>
+            <canvas class="hero-cover-dots"></canvas>
           </div>
-          <div class="hero-cover" aria-hidden="true"></div>
+          <button class="cover-playback" type="button" aria-label="Pause cover animation" hidden>
+            <svg class="cover-pause-icon" viewBox="0 0 24 24" aria-hidden="true"><use href="assets/images/cover-controls.svg#pause"></use></svg>
+            <svg class="cover-play-icon" viewBox="0 0 24 24" aria-hidden="true" hidden><use href="assets/images/cover-controls.svg#play"></use></svg>
+          </button>
         </div>
       </section>
 
@@ -55,7 +71,7 @@
           <div class="section-kicker">01 Profile / Overview</div>
         </div>
         <div class="profile-panel-media">
-          <img src="assets/images/projects/profile_image.jpg" alt="Xitao Wang profile image" loading="lazy">
+          <img src="assets/images/optimized/projects/profile_image.jpg-960.webp" srcset="assets/images/optimized/projects/profile_image.jpg-480.webp 480w, assets/images/optimized/projects/profile_image.jpg-960.webp 960w, assets/images/optimized/projects/profile_image.jpg-1600.webp 1600w" sizes="(max-width: 1279px) min(520px, calc(100vw - 40px)), 560px" width="5356" height="5355" alt="Xitao Wang profile image" loading="lazy" decoding="async">
         </div>
         <div class="profile-panel-copy">
           <div class="profile-page-title">
@@ -93,13 +109,15 @@
             </div>
             <address class="contact-links profile-contact-links">
               <div class="contact-cta">
-                <p>Have an idea, or want to connect?</p>
+                <p>Have an idea,<br>or want to connect?</p>
                 <a class="contact-email-button" href="mailto:x.wangarch@gmail.com">Email Me</a>
               </div>
-              <a href="https://www.linkedin.com/in/xitao-wang-architecture/" data-social="linkedin" target="_blank" rel="noreferrer">LinkedIn</a>
-              <a href="https://www.instagram.com/xtwang10/" data-social="instagram" target="_blank" rel="noreferrer">Instagram</a>
-              <a href="https://www.youtube.com/@lucaswang6740" data-social="youtube" target="_blank" rel="noreferrer">YouTube</a>
-              <a href="#" data-social="msa" target="_blank" rel="noreferrer">MSA Student Page</a>
+              <div class="profile-social-links">
+                <a href="https://www.linkedin.com/in/xitao-wang-architecture/" data-social="linkedin" target="_blank" rel="noreferrer">LinkedIn</a>
+                <a href="https://www.instagram.com/xtwang10/" data-social="instagram" target="_blank" rel="noreferrer">Instagram</a>
+                <a href="https://www.youtube.com/@lucaswang6740" data-social="youtube" target="_blank" rel="noreferrer">YouTube</a>
+                <a href="#" data-social="msa" target="_blank" rel="noreferrer">MSA Student Page</a>
+              </div>
             </address>
           </div>
         </div>
@@ -112,7 +130,7 @@
         <div id="work-groups" class="work-groups"></div>
       </section>
 
-      <section id="timeline" class="section" data-section>
+      <section id="timeline" class="section" data-section data-snap-stop>
         <div class="section-marker">
           <div class="section-kicker">03 Experience</div>
         </div>
@@ -179,7 +197,9 @@
     </main>
 
     <script src="assets/js/site-data.js?v=20260603-05"></script>
-    <script src="assets/js/shared.js?v=20260521-22"></script>
-    <script src="assets/js/main.js?v=20260603-07"></script>
+    <script src="assets/js/image-manifest.js?v=20261030-01"></script>
+    <script src="assets/js/shared.js?v=20261030-01"></script>
+    <script src="assets/js/cover.js?v=20261031-02"></script>
+    <script src="assets/js/main.js?v=20261031-01"></script>
   </body>
 </html>

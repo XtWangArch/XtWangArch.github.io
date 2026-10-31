@@ -18,9 +18,9 @@
     return escapeHtml(value);
   }
 
-  function mediaMarkup(image, label) {
+  function mediaMarkup(image, label, sizes = "(max-width: 720px) calc(100vw - 40px), 24vw") {
     if (image) {
-      return `<img src="${escapeAttribute(image)}" alt="${escapeAttribute(label)}" loading="lazy">`;
+      return `<img ${window.portfolioMedia.attributes(image, sizes)} alt="${escapeAttribute(label)}" loading="lazy">`;
     }
 
     return `<div class="visual-placeholder" aria-label="${escapeAttribute(label)}"><span>${escapeHtml(label)}</span></div>`;
@@ -91,7 +91,7 @@
 
     return `
       <aside class="detail-hero-logo" aria-label="${escapeAttribute(project.title)} logo">
-        ${mediaMarkup(project.logo, `${project.title} logo`)}
+        ${mediaMarkup(project.logo, `${project.title} logo`, "(max-width: 720px) 72vw, 28vw")}
       </aside>
     `;
   }
@@ -122,7 +122,7 @@
       return `
       <figure class="gallery-item ${className} ${item.layout === "full" ? "is-full" : ""}">
         <${isClickable ? "button" : "div"} class="gallery-media ${item.image ? "has-image" : "has-placeholder"} ${disableInteraction ? "is-static" : ""}" ${isClickable ? `type="button" data-full-image="${escapeAttribute(item.image)}" data-full-label="${escapeAttribute(item.label)}" data-full-caption="${escapeAttribute(item.caption)}" data-lightbox-index="${imageIndex}" aria-label="View ${escapeAttribute(item.label)} larger"` : ""}>
-          ${mediaMarkup(item.image, item.label)}
+          ${mediaMarkup(item.image, item.label, disableInteraction || item.layout === "full" ? "(max-width: 980px) min(560px, calc(100vw - 40px)), min(72vw, 1180px)" : undefined)}
           ${shouldShowCaption ? `
             <figcaption class="gallery-caption">
               <strong>${escapeHtml(item.label)}</strong>
@@ -181,15 +181,16 @@
         <a class="text-link" href="index.html#work-${project.id}">Back to Selected Works</a>
       </div>
 
-      <div class="image-lightbox" id="image-lightbox" aria-hidden="true">
-        <button class="image-lightbox-close" type="button" aria-label="Close image preview">Close</button>
+      <dialog class="image-lightbox" id="image-lightbox" aria-label="Image preview" aria-describedby="image-lightbox-caption" aria-hidden="true">
+        <button class="image-lightbox-close" type="button" aria-label="Close image preview" autofocus>Close</button>
         <button class="image-lightbox-nav image-lightbox-prev" type="button" aria-label="Previous image">Previous</button>
         <button class="image-lightbox-nav image-lightbox-next" type="button" aria-label="Next image">Next</button>
         <figure>
           <img alt="">
-          <figcaption></figcaption>
+          <figcaption id="image-lightbox-caption" aria-live="polite"></figcaption>
         </figure>
-      </div>
+        <span class="image-lightbox-status" role="status" hidden></span>
+      </dialog>
     `;
 
     setupProjectReveals();
@@ -227,10 +228,29 @@
         if (link.target && link.target !== "_self") return;
 
         event.preventDefault();
+        if (main.classList.contains("is-exiting")) return;
+        const current = getComputedStyle(main);
+        const startOpacity = current.opacity;
+        const startTransform = current.transform;
+        const reducedMotion = window.portfolioUI.reducedMotion();
+        main.getAnimations().forEach((animation) => animation.cancel());
         main.classList.add("is-exiting");
-        window.setTimeout(() => {
+        const duration = reducedMotion ? 120 : 500;
+        let navigating = false;
+        const navigate = () => {
+          if (navigating) return;
+          navigating = true;
           window.location.href = link.href;
-        }, 500);
+        };
+        const exit = main.animate([
+          { opacity: startOpacity, transform: reducedMotion ? "none" : startTransform },
+          { opacity: 0, transform: reducedMotion ? "none" : "translateY(18px)" }
+        ], { duration, easing: "ease-out", fill: "forwards" });
+        const fallback = window.setTimeout(navigate, duration);
+        exit.finished.then(() => {
+          window.clearTimeout(fallback);
+          navigate();
+        }).catch(() => {});
       });
     });
   }
@@ -246,12 +266,17 @@
     const close = lightbox.querySelector(".image-lightbox-close");
     const previous = lightbox.querySelector(".image-lightbox-prev");
     const next = lightbox.querySelector(".image-lightbox-next");
+    const status = lightbox.querySelector(".image-lightbox-status");
     const triggers = Array.from(document.querySelectorAll("[data-full-image]"));
     let currentIndex = 0;
-    let switchTimer;
+    let imageRequest = 0;
+    let closeTimer;
+    let closing = false;
+    let opener;
+    let scrollBeforeOpen = 0;
 
-    function applyImage(trigger) {
-      image.src = trigger.dataset.fullImage;
+    function applyImage(trigger, source) {
+      image.src = source;
       image.alt = trigger.dataset.fullLabel || "";
       caption.textContent = trigger.dataset.fullCaption || trigger.dataset.fullLabel || "";
     }
@@ -261,39 +286,80 @@
       const nextIndex = (index + triggers.length) % triggers.length;
       const trigger = triggers[nextIndex];
       const shouldAnimate = lightbox.classList.contains("is-open");
-
-      window.clearTimeout(switchTimer);
-
+      const request = ++imageRequest;
+      currentIndex = nextIndex;
+      const preview = trigger.querySelector("img")?.currentSrc || trigger.dataset.fullImage;
       if (!shouldAnimate) {
-        currentIndex = nextIndex;
-        applyImage(trigger);
-        return;
+        applyImage(trigger, preview);
+      } else {
+        lightbox.classList.add("is-switching");
       }
 
-      lightbox.classList.add("is-switching");
-      switchTimer = window.setTimeout(() => {
-        currentIndex = nextIndex;
-        applyImage(trigger);
+      lightbox.setAttribute("aria-busy", "true");
+      status.textContent = "Loading image...";
+      status.hidden = false;
+      const fullImage = new Image();
+      fullImage.src = trigger.dataset.fullImage;
+      const loaded = fullImage.decode().then(() => true, () => false);
+      const delay = shouldAnimate ? (window.portfolioUI.reducedMotion() ? 0 : 180) : 0;
+      Promise.all([loaded, new Promise((resolve) => window.setTimeout(resolve, delay))]).then(([success]) => {
+        if (request !== imageRequest || !lightbox.open || closing) return;
+        applyImage(trigger, success ? trigger.dataset.fullImage : preview);
+        lightbox.setAttribute("aria-busy", "false");
+        status.hidden = success;
+        if (!success) status.textContent = "Unable to load the full-size image.";
         window.requestAnimationFrame(() => {
           lightbox.classList.remove("is-switching");
         });
-      }, 180);
+      });
     }
 
     function closeLightbox() {
-      window.clearTimeout(switchTimer);
+      if (!lightbox.open || closing) return;
+      closing = true;
+      imageRequest += 1;
       lightbox.classList.remove("is-open");
       lightbox.classList.remove("is-switching");
+      closeTimer = window.setTimeout(() => {
+        lightbox.close();
+        restorePage();
+      }, window.portfolioUI.reducedMotion() ? 120 : 500);
+    }
+
+    function restorePage() {
+      if (!document.body.classList.contains("has-lightbox")) return;
+      window.clearTimeout(closeTimer);
+      closing = false;
+      lightbox.classList.remove("is-open", "is-switching");
       lightbox.setAttribute("aria-hidden", "true");
+      lightbox.removeAttribute("aria-busy");
+      document.body.classList.remove("has-lightbox");
       image.removeAttribute("src");
       image.alt = "";
       caption.textContent = "";
+      status.hidden = true;
+      opener?.focus({ preventScroll: true });
+      window.scrollTo({ top: scrollBeforeOpen, behavior: "instant" });
     }
 
+    lightbox.addEventListener("close", restorePage);
+
+    lightbox.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      closeLightbox();
+    });
+
     function openLightbox(trigger) {
-      showImage(Number(trigger.dataset.lightboxIndex) || 0);
-      lightbox.classList.add("is-open");
+      opener = trigger;
+      scrollBeforeOpen = window.scrollY;
+      closing = false;
+      document.body.classList.add("has-lightbox");
+      lightbox.showModal();
       lightbox.setAttribute("aria-hidden", "false");
+      showImage(Number(trigger.dataset.lightboxIndex) || 0);
+      lightbox.getBoundingClientRect();
+      lightbox.classList.add("is-open");
+      close.focus({ preventScroll: true });
     }
 
     triggers.forEach((trigger) => {
@@ -307,13 +373,20 @@
       if (event.target === lightbox) closeLightbox();
     });
     document.addEventListener("keydown", (event) => {
-      if (!lightbox.classList.contains("is-open")) return;
+      if (!lightbox.open || closing) return;
 
-      if (event.key === "Escape") {
-        closeLightbox();
+      if (event.key === "Tab") {
+        const controls = [close, previous, next];
+        const index = controls.indexOf(document.activeElement);
+        if (index < 0 || (event.shiftKey && index === 0) || (!event.shiftKey && index === controls.length - 1)) {
+          event.preventDefault();
+          controls[event.shiftKey ? controls.length - 1 : 0].focus({ preventScroll: true });
+        }
       } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
         showImage(currentIndex - 1);
       } else if (event.key === "ArrowRight") {
+        event.preventDefault();
         showImage(currentIndex + 1);
       }
     });

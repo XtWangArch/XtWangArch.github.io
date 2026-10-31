@@ -11,6 +11,7 @@ This README is also the handoff note for continuing work in future Codex convers
 - `cv.html`: standalone CV page.
 - `assets/js/site-data.js`: main content source for projects, CV-related links, education, experience, activity, photography, and videos.
 - `assets/js/main.js`: homepage rendering, selected works rendering, scroll snap, profile "More about me", return-to-project positioning.
+- `assets/js/cover.js`: responsive cover video, floating inverse-color dots, pause control, visibility and reduced-motion handling.
 - `assets/js/project.js`: project detail rendering, gallery shuffle, lightbox, Previous/Next project transitions.
 - `assets/css/styles.css`: all layout, typography, animations, responsive rules.
 - `assets/images/projects/`: all project and profile images.
@@ -19,19 +20,71 @@ This README is also the handoff note for continuing work in future Codex convers
 Current cache versions after the latest edits:
 
 - `index.html`
-  - `styles.css?v=20260602-17`
-  - `site-data.js?v=20260603-01`
-  - `main.js?v=20260602-13`
+  - `styles.css?v=20261031-05`
+  - `site-data.js?v=20260603-05`
+  - `image-manifest.js?v=20261030-01`
+  - `shared.js?v=20261030-01`
+  - `cover.js?v=20261031-02`
+  - `main.js?v=20261031-01`
 - `project.html`
-  - `styles.css?v=20260602-17`
-  - `site-data.js?v=20260603-01`
-  - `project.js?v=20260602-11`
+  - `styles.css?v=20261031-05`
+  - `site-data.js?v=20260603-04`
+  - `image-manifest.js?v=20261030-01`
+  - `shared.js?v=20261030-01`
+  - `project.js?v=20261030-01`
 - `cv.html`
-  - `styles.css?v=20260602-17`
+  - `styles.css?v=20261031-05`
+  - `shared.js?v=20261030-01`
 
 When editing CSS or JS, bump the relevant query string in the HTML files so the browser loads the new version.
 
 ## Local Preview
+
+### 2026-10-31 Profile Layout
+
+- The three CV actions now remain 14px below the profile disclosure in normal document flow, instead of being pushed away from the paragraphs by an automatic top margin. This gap stays constant before, during and after expansion.
+- More about me remains native `details` / `summary` for keyboard access and no-script fallback. Clicking it opens the paragraph with a 520ms ease-out height animation and a 420ms opacity fade; the CV action row moves down with the animated height. The label disappears after opening, paragraph spacing remains consistent, and the final height returns to automatic sizing. Reduced motion opens immediately; keyboard focus moves into the revealed paragraph without scrolling.
+- Profile contact now has two columns: the two-line invitation with Email Me below on the left, and four compact social links stacked vertically on the right. Social links retain the original bottom-rule style, with no box borders or hover fill. The footer Contact section is unchanged.
+- The photo retains its fixed square dimensions and does not move during expansion. On desktop, the contact block remains at the bottom of the matching right-hand frame; on tablet/mobile, all content flows naturally. Social buttons have larger targets on the stacked layout.
+
+### 2026-10-31 Cover Video
+
+- The original `assets/video/site cover video.mp4` is preserved unchanged: 1920 x 810, approximately 181 seconds, H.264, SDR Rec.709, square pixels. It is not loaded by the website.
+- The cover uses `assets/video/cover-desktop.mp4` (approximately 36 MB) or `cover-mobile.mp4` (approximately 15 MB, 1280 x 540), keeping the full duration. Both are silent H.264 MP4 files with fast-start metadata. `cover-poster.jpg` provides the loading, error and reduced-motion fallback.
+- The video fills the viewport with `object-fit: cover`: its proportions are preserved, with side cropping on narrower screens instead of stretching or baked-in black bars.
+- A transparent canvas draws slowly floating white dots above the video. CSS `mix-blend-mode: difference` inverts the actual moving video only beneath each dot. Mobile uses fewer dots and a lower canvas pixel ratio; drawing is capped at 30 fps.
+- Mouse/pen movement pushes nearby dots aside and emits outward travelling ripple displacements. Damped springs restore the original grid after the pointer leaves. Touch scrolling is not intercepted.
+- The footage layer, including its poster fallback, uses 68% opacity, 55% saturation and 82% contrast over the paper background. These values are CSS variables on `.hero-cover`.
+- The SVG gently breathes over a six-second cycle, scaling from 98.5% to 101.5% and changing opacity from 90% to 100%. It pauses together with the dots/video, and remains static with reduced motion.
+- The supplied cover SVG remains centered, fades in, and is rendered white over the footage. Clicking the cover or its keyboard-accessible logo enters Profile. The lower-right play/pause icon controls both video and dots without entering Profile; Lucide icon attribution is beside the sprite in `assets/images/`.
+- Playback and drawing stop offscreen or when the browser tab is hidden. Opening a Profile/project anchor directly does not download the video. Reduced-motion visitors get a static poster and dots; data-saver visitors can start playback explicitly.
+- Muted inline autoplay is attempted immediately when the cover is visible. Initial fragment navigation has a bounded settling period, not a requirement to leave the cover first. Retaining a Profile hash while showing the cover must not prevent autoplay. Cover clicks always enter Profile; they are never intercepted as a required playback step. Browser-level autoplay restrictions can still prevent automatic video playback, in which case the independent playback control remains available.
+- To replace the video, regenerate the two playback files and poster while preserving their filenames, or change `data-desktop-src`, `data-mobile-src` and `poster` in `index.html`. The poster background is also referenced in `assets/css/styles.css`.
+- Checks: `node --test tests/site.test.cjs tests/cover.test.cjs`.
+
+### 2026-10-30 UI Fixes
+
+- Kept the existing MSA placeholder URLs and font configuration unchanged, as requested.
+- Profile uses equal desktop columns with a centered square photo (maximum 560px) on the left and the complete information block on the right. The name is included in that block; expanded text, CV actions and contact links fit between the photo's upper and lower edges. Expanding More about me does not move or resize the photo. The contact arrangement was subsequently updated as described in the 2026-10-31 Profile Layout note above. Profile content that exceeds the viewport scrolls normally before advancing to a project. Tablet/mobile layouts remain vertically stacked with normal scrolling.
+- Header height is measured with ResizeObserver instead of relying on a mobile height estimate. Navigation is visible by default on CV and project pages.
+- Fixed Email Me hover contrast and darkened the text/button accent while retaining the original decorative accent.
+- The image viewer uses a native modal dialog, keeps keyboard focus inside, restores focus on close, and locks background scrolling. Full-resolution originals are still used for enlarged images.
+- Fixed project exit transitions and added a reduced-motion alternative for scrolling and animations.
+- Responsive WebP previews live in `assets/images/optimized/`; original images have not been changed. `assets/js/image-manifest.js` contains generated source dimensions and preview variants.
+
+After adding or replacing images, regenerate previews with Pillow installed:
+
+```powershell
+python scripts/optimize-images.py
+```
+
+Unlisted new image paths still fall back to their original files. Rebuild previews before publishing, and update the `image-manifest.js` cache version in `index.html` and `project.html` after a rebuild.
+
+Run focused checks with Node.js:
+
+```powershell
+node --test tests/site.test.cjs
+```
 
 Preferred local URL:
 
@@ -82,7 +135,7 @@ The site is static, so it can be deployed on GitHub Pages without a backend.
 ### Cover
 
 - First viewport is a full-screen cover.
-- Cover can use a full-screen video/visual background.
+- Cover uses the responsive video and inverse-color floating dot layer described above.
 - A provided `COVER.svg` replaced the old text title on the cover.
 - Cover logo fades in slowly at the center.
 - Cover text/logo should be white when over the cover visual.
@@ -157,6 +210,8 @@ This has been debugged several times. Current behavior should be:
 - Scrolling from cover goes to profile.
 - Scrolling from profile goes to selected works / first academic project.
 - Each selected work project snaps independently.
+- Scrolling down from the final Research project snaps to the beginning of Experience / Work Experience, with its section label and first work entry visible below the header. Experience is the final `data-snap-stop`; further downward scrolling remains natural so Work Experience, Education and Activity can be read without being trapped. Scrolling back up from its beginning returns to the Research project. The existing no-wheel-snap mobile behavior is unchanged.
+- Native navigation to `#timeline` retains the header-height scroll margin, including on mobile; wheel snapping still aligns the section itself to the viewport.
 - On snap, the visual group `cover image + project title/metadata area` must be vertically centered in the visible viewport below the fixed header.
 - A screen should show only one project. The next project cover must not peek at the bottom.
 - Scrolling upward from project 2 to project 1 must not jump to cover.
