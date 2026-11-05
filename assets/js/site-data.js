@@ -979,17 +979,6 @@ window.portfolioData = {
       ]
     },
     {
-      "id": "photo-mvzgd7fl",
-      "kind": "journey",
-      "title": "新旅行相册",
-      "year": "",
-      "location": "",
-      "brief": "",
-      "cover": "",
-      "gallery": [],
-      "published": true
-    },
-    {
       "id": "photo-mw42578n",
       "kind": "landscape",
       "title": "2026",
@@ -1024,17 +1013,6 @@ window.portfolioData = {
           "caption": ""
         }
       ],
-      "published": true
-    },
-    {
-      "id": "photo-mw42h2dm",
-      "kind": "commercial",
-      "title": "新商业项目",
-      "year": "",
-      "location": "",
-      "brief": "",
-      "cover": "",
-      "gallery": [],
       "published": true
     },
     {
