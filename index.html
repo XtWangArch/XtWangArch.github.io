@@ -10,9 +10,12 @@
     >
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Alice&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Alice&family=Cormorant+Garamond:wght@300&family=Lora:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://use.typekit.net/ckj5ktb.css">
-    <link rel="stylesheet" href="assets/css/styles.css?v=20261031-05">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20261105-04">
+    <link rel="stylesheet" href="assets/css/portfolio-entry.css?v=20261102-18">
+    <link rel="stylesheet" href="assets/css/photography.css?v=20261105-08">
+    <link rel="stylesheet" href="assets/css/floating-navigation.css?v=20261102-14">
   </head>
   <body class="home-page">
     <header class="site-header" aria-label="Primary navigation">
@@ -22,6 +25,7 @@
       </a>
       <nav class="top-nav">
         <a href="#profile-intro">Profile</a>
+        <a href="#portfolios">Portfolio</a>
         <a href="#selected-works">Selected Works</a>
         <a href="#timeline">Experience</a>
         <a href="#other-work">Other Work</a>
@@ -29,15 +33,21 @@
       </nav>
     </header>
 
-    <nav class="section-rail" aria-label="Page section progress">
+    <div class="floating-primary" id="floating-primary-nav" hidden>
+      <button class="floating-toggle floating-toggle-circle" id="primary-navigation-toggle" type="button" aria-label="Open site navigation" title="Open site navigation" aria-expanded="false" aria-controls="floating-primary-panel"><i data-lucide="menu" class="floating-menu-icon" aria-hidden="true"></i></button>
+      <nav class="floating-primary-panel" id="floating-primary-panel" aria-label="Site navigation" aria-hidden="true" inert></nav>
+    </div>
+
+    <nav class="section-rail" id="page-progress-navigation" aria-label="Page section progress" aria-hidden="true" inert>
       <div class="rail-track" aria-hidden="true">
         <span id="rail-progress"></span>
       </div>
       <a href="#profile-intro" data-section-link="profile-intro"><span>01</span>Profile</a>
-      <a href="#selected-works" data-section-link="selected-works"><span>02</span>Works</a>
-      <a href="#timeline" data-section-link="timeline"><span>03</span>Exp</a>
-      <a href="#other-work" data-section-link="other-work"><span>04</span>Other</a>
-      <a href="#contact" data-section-link="contact"><span>05</span>Contact</a>
+      <a href="#portfolios" data-section-link="portfolios"><span>02</span>Portfolio</a>
+      <a href="#selected-works" data-section-link="selected-works"><span>03</span>Works</a>
+      <a href="#timeline" data-section-link="timeline"><span>04</span>Experience</a>
+      <a href="#other-work" data-section-link="other-work"><span>05</span>Other Work</a>
+      <a href="#contact" data-section-link="contact"><span>06</span>Contact</a>
     </nav>
 
     <main>
@@ -123,49 +133,46 @@
         </div>
       </section>
 
+      <section id="portfolios" class="portfolio-choice" aria-label="Choose a portfolio" data-section data-snap-stop>
+        <div class="portfolio-choice-marker">02 Portfolio</div>
+        <div class="portfolio-portrait">
+          <img src="assets/images/optimized/projects/profile_image.jpg-480.webp" width="480" height="480" alt="Xitao Wang" decoding="async">
+        </div>
+        <p class="portfolio-choice-caption">there are double sides of me</p>
+        <a class="portfolio-choice-link" href="#photography-works" data-portfolio="photography"><i class="portfolio-choice-preview" aria-hidden="true"></i><span>Photography &amp; Film Making</span></a>
+        <a class="portfolio-choice-link" href="#selected-works" data-portfolio="architecture"><i class="portfolio-choice-preview" aria-hidden="true"></i><span>Architecture</span></a>
+      </section>
+
+      <div id="architecture-portfolio">
+      <section id="photography-works" class="section photography-works photo-section" aria-label="Photography and Film Making works" data-section data-snap-stop hidden tabindex="-1">
+        <div class="photo-browser" data-photo-browser></div>
+      </section>
       <section id="selected-works" class="section" data-section>
         <div class="section-marker">
-          <div class="section-kicker">02 Selected Works</div>
+          <div class="section-kicker">03 Selected Works</div>
         </div>
         <div id="work-groups" class="work-groups"></div>
       </section>
 
       <section id="timeline" class="section" data-section data-snap-stop>
         <div class="section-marker">
-          <div class="section-kicker">03 Experience</div>
+          <div class="section-kicker">04 Experience</div>
         </div>
         <div id="timeline-list" class="timeline-board"></div>
       </section>
 
-      <section id="other-work" class="section" data-section>
+      <section id="other-work" class="section portfolio-entry" data-section data-snap-stop>
         <div class="section-marker">
-          <div class="section-kicker">04 Other Work</div>
+          <div class="section-kicker">05 Other Work</div>
         </div>
-        <section class="subsection" aria-labelledby="photography-title">
-          <div class="subsection-heading">
-            <h3 id="photography-title">Photography</h3>
-            <a class="text-link" id="instagram-link" href="#" target="_blank" rel="noreferrer">
-              Instagram
-            </a>
-          </div>
-          <div id="photo-wall" class="photo-wall"></div>
-        </section>
-
-        <section class="subsection" aria-labelledby="videography-title">
-          <div class="subsection-heading">
-            <h3 id="videography-title">Videography</h3>
-            <a class="text-link" id="youtube-link" href="#" target="_blank" rel="noreferrer">
-              YouTube
-            </a>
-          </div>
-          <div id="video-feature" class="video-feature"></div>
-          <div id="video-cards" class="video-cards"></div>
-        </section>
+        <div class="portfolio-entry-action">
+          <a class="portfolio-choice-link" href="#photography-works" data-portfolio="photography" data-portfolio-transition="cross"><i class="portfolio-choice-preview" aria-hidden="true"></i><span>Photography &amp; Film Making</span></a>
+        </div>
       </section>
 
       <section id="contact" class="section contact-section" data-section>
         <div class="section-marker">
-          <div class="section-kicker">05 Contact</div>
+          <div class="section-kicker">06 Contact</div>
         </div>
         <div class="contact-grid">
           <div>
@@ -194,12 +201,18 @@
           </address>
         </div>
       </section>
+      </div>
     </main>
 
-    <script src="assets/js/site-data.js?v=20260603-05"></script>
-    <script src="assets/js/image-manifest.js?v=20261030-01"></script>
-    <script src="assets/js/shared.js?v=20261030-01"></script>
+    <script src="assets/js/site-data.js?v=admin-1793917202712"></script>
+    <script src="assets/js/page-content.js?v=admin-1793917202712"></script>
+    <script src="assets/js/image-manifest.js?v=admin-1793917202712"></script>
+    <script src="assets/js/shared.js?v=20261102-16"></script>
     <script src="assets/js/cover.js?v=20261031-02"></script>
-    <script src="assets/js/main.js?v=20261031-01"></script>
+    <script src="assets/js/portfolio-portal.js?v=20261102-18"></script>
+    <script src="assets/js/main.js?v=20261105-05"></script>
+    <script src="admin/vendor/lucide.min.js"></script>
+    <script src="assets/js/photography.js?v=20261105-08"></script>
+    <script src="assets/js/floating-navigation.js?v=20261102-14"></script>
   </body>
 </html>

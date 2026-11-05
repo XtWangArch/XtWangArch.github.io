@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="admin-token" content="__ADMIN_TOKEN__">
+  <title>内容管理 · Xitao Wang</title>
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="admin-brand" href="/admin/">Xitao Wang<span>内容管理</span></a>
+    <nav aria-label="管理导航">
+      <button data-view="projects" class="active"><i data-lucide="folder-open"></i>案例与图库 <span id="project-count"></span></button>
+      <button data-view="photo"><i data-lucide="camera"></i>摄影与影片作品集</button>
+      <button data-view="pages"><i data-lucide="panels-top-left"></i>页面文字</button>
+      <button data-view="experience"><i data-lucide="graduation-cap"></i>经历与教育</button>
+      <button data-view="media"><i data-lucide="film"></i>摄影与视频</button>
+      <button data-view="settings"><i data-lucide="link"></i>链接与文件</button>
+      <button data-view="backups"><i data-lucide="history"></i>保存记录</button>
+    </nav>
+    <div class="sidebar-bottom"><span class="local-dot"></span>仅本机可访问<p>本地保存后，仍需推送 GitHub 才会上线。</p></div>
+  </aside>
+  <div class="workspace">
+    <header class="toolbar">
+      <div><h1 id="view-title">案例与图库</h1><span id="save-state">正在连接…</span></div>
+      <div class="toolbar-actions">
+        <button id="reload" title="重新载入本地文件"><i data-lucide="rotate-ccw"></i><span>重新载入</span></button>
+        <a href="/index.html" target="_blank" rel="noopener"><i data-lucide="external-link"></i><span>打开网站</span></a>
+        <button id="save" class="primary" disabled><i data-lucide="save"></i>保存全部更改</button>
+      </div>
+    </header>
+    <div id="notice" role="status" hidden></div>
+    <main id="editor"><p class="loading">正在读取本地内容…</p></main>
+  </div>
+  <dialog id="asset-dialog" aria-labelledby="asset-title">
+    <header><h2 id="asset-title">选择素材</h2><button data-close-dialog title="关闭素材库"><i data-lucide="x"></i></button></header>
+    <div class="asset-toolbar"><input id="asset-search" type="search" placeholder="搜索文件名或路径"><button id="asset-upload"><i data-lucide="upload"></i>上传文件</button></div>
+    <div id="asset-grid"></div>
+  </dialog>
+  <input id="file-input" type="file" multiple hidden>
+  <script src="vendor/lucide.min.js"></script>
+  <script src="/assets/js/image-manifest.js"></script>
+  <script src="admin.js?v=20261105-01"></script>
+</body>
+</html>

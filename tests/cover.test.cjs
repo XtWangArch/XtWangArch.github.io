@@ -7,6 +7,18 @@ const vm = require('node:vm');
 const root = path.resolve(__dirname, '..');
 const source = fs.readFileSync(path.join(root, 'assets/js/cover.js'), 'utf8');
 
+test('cover preserves video colors, uses a large plain logo and inverse dots', () => {
+  const css = fs.readFileSync(path.join(root, 'assets/css/styles.css'), 'utf8');
+  assert.match(css, /\.hero-cover-footage\s*\{[^}]*opacity:\s*1;[^}]*filter:\s*none;/);
+  assert.match(css, /\.hero-title\s*\{[^}]*mix-blend-mode:\s*normal;/);
+  assert.match(css, /\.hero-title\s*\{[^}]*width:\s*min\(152vw, 1960px\)/);
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /hero-logo-backdrop|hero-logo-keyline/);
+  assert.match(css, /\.hero-cover-dots\s*\{[^}]*mix-blend-mode:\s*difference;/);
+  assert.match(css, /\.hero-grid\s*\{[^}]*isolation:\s*isolate;/);
+  assert.match(css, /\.hero-cover\s*\{[^}]*isolation:\s*auto;/);
+});
+
 function coverHarness({ reduced = false, mobile = false, saveData = false, hash = '', initiallyVisible = false, blocked = false } = {}) {
   const attributes = new Map();
   const callbacks = {};

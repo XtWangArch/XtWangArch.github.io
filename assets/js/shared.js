@@ -33,6 +33,64 @@
   const data = window.portfolioData;
   if (!data) return;
 
+  const escapeText = (value) => escapeAttribute(value ?? '').replace(/'/g, '&#39;');
+  const richText = (value) => escapeText(value).replace(/&lt;(\/?)(strong|em|br)\s*\/?&gt;/gi, '<$1$2>');
+  function recordLink(item, returnTo) {
+    if (!item.url) return escapeText(item.title);
+    const url = new URL(item.url, window.location.href);
+    const external = url.origin !== window.location.origin;
+    if (!external && returnTo && url.searchParams.has('activity')) url.searchParams.set('return', returnTo);
+    return `<a href="${escapeAttribute(url.href)}"${external ? ' target="_blank" rel="noreferrer"' : ''}>${escapeText(item.title)}</a>`;
+  }
+  window.portfolioText = { escape: escapeText, rich: richText, recordLink };
+
+  function renderCV() {
+    document.querySelectorAll('[data-cv-list]').forEach((section) => {
+      section.querySelectorAll('article').forEach(item => item.remove());
+      section.insertAdjacentHTML('beforeend', (data[section.dataset.cvList] || []).map(item => `
+        <article>
+          <time>${escapeText(item.date || item.year || '')}</time>
+          <h3>${recordLink(item, 'cv')}</h3>
+          ${item.subtitle ? `<p>${escapeText(item.subtitle)}</p>` : ''}
+          ${item.description ? `<p${section.dataset.cvList === 'experience' ? ' class="cv-work-summary"' : ''}>${richText(item.description)}</p>` : ''}
+          ${item.details?.length ? `<ul class="cv-detail-list">${item.details.map(text => `<li>${richText(text)}</li>`).join('')}</ul>` : ''}
+        </article>`).join(''));
+    });
+  }
+
+  window.applyPortfolioPageContent = function () {
+    const page = location.pathname.endsWith('cv.html') ? 'cv' : location.pathname.endsWith('project.html') ? 'project' : location.pathname.endsWith('photography.html') ? 'photography' : 'index';
+    for (const [selector, patch] of Object.entries(window.portfolioPageContent?.[page] || {})) {
+      let elements;
+      try { elements = document.querySelectorAll(selector); } catch (_) { continue; }
+      elements.forEach(element => {
+        if (typeof patch.text === 'string') { element.textContent = patch.text; element.style.whiteSpace = 'pre-line'; }
+        if (typeof patch.label === 'string' && element.matches('[data-section-link]')) {
+          const content = element.querySelector('.nav-dock-content') || element;
+          [...content.childNodes].filter(node=>node.nodeType===3).forEach(node=>node.remove());
+          content.append(document.createTextNode(patch.label));
+        }
+        for (const key of ['src','alt','href','poster','content']) if (typeof patch[key] === 'string') {
+          element.setAttribute(key, patch[key]);
+          if (key === 'src' && element.tagName === 'IMG') {
+            element.removeAttribute('srcset');
+            if (element.closest('.profile-panel-media')) document.querySelectorAll('.portfolio-portrait img,.portfolio-portrait-flight').forEach(img => { img.src=patch.src; img.removeAttribute('srcset'); });
+          }
+        }
+        if (typeof patch.desktop === 'string') element.dataset.desktopSrc = patch.desktop;
+        if (typeof patch.mobile === 'string') element.dataset.mobileSrc = patch.mobile;
+        if (element.tagName === 'VIDEO' && (patch.desktop !== undefined || patch.mobile !== undefined)) {
+          const source = matchMedia('(max-width: 980px)').matches ? element.dataset.mobileSrc : element.dataset.desktopSrc;
+          if (source && element.getAttribute('src') && element.getAttribute('src') !== source) {
+            const wasPlaying = !element.paused;
+            element.src = source;
+            if (wasPlaying) element.play().catch(() => {});
+          }
+        }
+      });
+    }
+  };
+
   function updateDownloadLinks() {
     document.querySelectorAll("[data-download]").forEach((link) => {
       const pdf = data.pdfs[link.dataset.download];
@@ -41,9 +99,10 @@
   }
 
   function updateEmailLinks() {
-    document.querySelectorAll('a[href="mailto:xitao.wang@example.com"]').forEach((link) => {
+    document.querySelectorAll('a[href^="mailto:"]').forEach((link) => {
+      const oldEmail = link.getAttribute('href').slice(7);
       link.href = `mailto:${data.links.email}`;
-      link.textContent = data.links.email;
+      if (oldEmail && link.textContent.includes(oldEmail)) link.textContent = link.textContent.replace(oldEmail, data.links.email);
     });
   }
 
@@ -72,5 +131,8 @@
     updateEmailLinks();
     updateSocialLinks();
     updateReturnLinks();
+    renderCV();
+    window.setTimeout(window.applyPortfolioPageContent, 0);
   });
+  window.addEventListener('load', window.applyPortfolioPageContent);
 })();

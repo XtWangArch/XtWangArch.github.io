@@ -1,0 +1,32 @@
+.drawing-prize .detail-hero h1 {
+  max-width: 30ch;
+  font-size: 40px;
+  line-height: 1.15;
+  white-space: normal;
+  text-transform: none;
+}
+
+.drawing-prize .gallery-grid {
+  width: min(100%, 1180px);
+  column-count: 1;
+  padding-top: 16px;
+}
+
+.drawing-prize .gallery-item {
+  margin-bottom: 40px;
+}
+
+.drawing-prize .gallery-media img {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 720px) {
+  .drawing-prize .detail-hero h1 {
+    font-size: 30px;
+  }
+
+  .drawing-prize .gallery-item {
+    margin-bottom: 24px;
+  }
+}

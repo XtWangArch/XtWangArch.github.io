@@ -3,7 +3,10 @@
   const mount = document.querySelector("#project-detail");
   const params = new URLSearchParams(window.location.search);
   const projectId = params.get("project");
-  const project = data.projects.find((item) => item.id === projectId);
+  const activityId = params.get("activity");
+  const project = activityId
+    ? (data.researchExperience || []).find((item) => item.id === activityId && item.gallery?.length)
+    : data.projects.find((item) => item.id === projectId);
 
   function escapeHtml(value) {
     return String(value)
@@ -27,16 +30,18 @@
   }
 
   function metadata(project) {
-    const extendedItems = [
+    const extendedItems = (activityId ? [
+      ["Date", project.date],
+      ["Award", project.award]
+    ] : [
       ["Year", project.year],
       ["Location", project.location],
       [project.website || project.area ? "Use" : "Type", project.type],
       ["Role", project.role],
       ["Status", project.status],
       ["Architect", project.architect],
-      ["Area", project.area],
-      ["Website", project.website]
-    ].filter(([, value]) => value);
+      ["Area", project.area]
+    ]).filter(([, value]) => value);
 
     return `
       <dl class="metadata detail-meta">
@@ -45,9 +50,7 @@
             <div>
               <dt>${label}</dt>
               <dd>
-                ${label === "Website"
-                  ? `<a class="text-link" href="${escapeAttribute(value)}" target="_blank" rel="noreferrer">KKAA project page</a>`
-                  : escapeHtml(value)}
+                ${escapeHtml(value)}
               </dd>
             </div>
           `)
@@ -70,6 +73,17 @@
     }
 
     return escapeHtml(project.title || "");
+  }
+
+  function publicationLinks(project) {
+    const links = [
+      ["KKAA project page", project.website],
+      ["View on ArchDaily", project.archdailyUrl]
+    ].filter(([, url]) => url);
+    if (!links.length) return "";
+    return `<div class="project-publications">${links.map(([label, url], index) =>
+      `<a class="button ${index === 0 ? "accent" : ""}" href="${escapeAttribute(url)}" target="_blank" rel="noopener noreferrer">${label}</a>`
+    ).join("")}</div>`;
   }
 
   function paragraphMarkup(value) {
@@ -106,23 +120,31 @@
   }
 
   function renderProject(project) {
-    const currentIndex = data.projects.findIndex((item) => item.id === project.id);
-    const previous = data.projects[(currentIndex - 1 + data.projects.length) % data.projects.length];
-    const next = data.projects[(currentIndex + 1) % data.projects.length];
+    const backHref = activityId
+      ? (params.get("return") === "cv" ? "cv.html?return=profile-intro" : "index.html#timeline")
+      : `index.html#work-${project.id}`;
+    const backLabel = activityId ? (params.get("return") === "cv" ? "Back to CV" : "Back to Experience") : "Back to Selected Works";
+    mount.classList.toggle("drawing-prize", Boolean(activityId));
+    const collection = data.projects.filter(item => (item.portfolio || 'architecture') === (project.portfolio || 'architecture'));
+    const currentIndex = collection.findIndex((item) => item.id === project.id);
+    const previous = collection[(currentIndex - 1 + collection.length) % collection.length];
+    const next = collection[(currentIndex + 1) % collection.length];
     const galleryItems = project.gallery || [];
-    const useFeatureImage = project.featureFromGallery !== false;
+    const useFeatureImage = !activityId && project.featureFromGallery !== false;
     const featureImage = useFeatureImage ? galleryItems[0] : null;
     const remainingImages = useFeatureImage ? galleryItems.slice(1) : galleryItems;
-    const galleryImages = project.shuffleGallery === false ? remainingImages : shuffledItems(remainingImages);
+    const pinnedImages = remainingImages.filter(item => item.pinned === true);
+    const unpinnedImages = remainingImages.filter(item => item.pinned !== true);
+    const galleryImages = activityId || project.shuffleGallery === false ? unpinnedImages : shuffledItems(unpinnedImages);
     let lightboxIndex = 0;
     const galleryItem = (item, className = "", forceCaption = false, disableInteraction = false) => {
       const shouldShowCaption = forceCaption || item.showCaption === true;
       const isClickable = item.image && !disableInteraction;
       const imageIndex = isClickable ? lightboxIndex++ : "";
       return `
-      <figure class="gallery-item ${className} ${item.layout === "full" ? "is-full" : ""}">
+      <figure class="gallery-item ${className} ${item.layout === "full" ? "is-full" : item.layout === "wide" ? "is-wide" : ""}">
         <${isClickable ? "button" : "div"} class="gallery-media ${item.image ? "has-image" : "has-placeholder"} ${disableInteraction ? "is-static" : ""}" ${isClickable ? `type="button" data-full-image="${escapeAttribute(item.image)}" data-full-label="${escapeAttribute(item.label)}" data-full-caption="${escapeAttribute(item.caption)}" data-lightbox-index="${imageIndex}" aria-label="View ${escapeAttribute(item.label)} larger"` : ""}>
-          ${mediaMarkup(item.image, item.label, disableInteraction || item.layout === "full" ? "(max-width: 980px) min(560px, calc(100vw - 40px)), min(72vw, 1180px)" : undefined)}
+          ${mediaMarkup(item.image, item.label, item.layout === "wide" ? "100vw" : activityId ? "(max-width: 720px) calc(100vw - 40px), min(84vw, 1180px)" : disableInteraction || item.layout === "full" ? "(max-width: 980px) min(560px, calc(100vw - 40px)), min(72vw, 1180px)" : undefined)}
           ${shouldShowCaption ? `
             <figcaption class="gallery-caption">
               <strong>${escapeHtml(item.label)}</strong>
@@ -134,51 +156,72 @@
       `;
     };
 
+    // Wide drawings sit outside the narrow masonry columns to match the text edges.
+    const gallerySections = [];
+    if (pinnedImages.length) {
+      gallerySections.push(`<section class="gallery-grid gallery-pinned" aria-label="Featured drawings">${pinnedImages.map(item => galleryItem(item)).join("")}</section>`);
+    }
+    let groupedImages = [];
+    const flushGallery = () => {
+      if (!groupedImages.length) return;
+      gallerySections.push(`<section class="gallery-grid" aria-label="${escapeAttribute(project.title)} images">${groupedImages.map(item => galleryItem(item)).join("")}</section>`);
+      groupedImages = [];
+    };
+    for (const item of galleryImages) {
+      if (item.layout === "wide") {
+        flushGallery();
+        gallerySections.push(`<section class="gallery-grid gallery-wide" aria-label="${escapeAttribute(item.label)}">${galleryItem(item)}</section>`);
+      } else groupedImages.push(item);
+    }
+    flushGallery();
+
     document.title = `${project.title} | Xitao Wang`;
+    if (activityId) document.querySelector('meta[name="description"]').content = `${project.title}. ${project.award}, ${project.date}. Drawings by Xitao Wang.`;
     mount.innerHTML = `
       <section class="detail-hero ${project.logo ? "has-detail-logo" : ""}">
-        <a class="text-link" href="index.html#work-${project.id}">Back to Selected Works</a>
+        <a class="text-link" href="${backHref}">${backLabel}</a>
         <div class="detail-hero-grid">
           <div class="detail-hero-copy">
-            <div class="section-kicker">${project.category}</div>
+            ${project.category ? `<div class="section-kicker">${escapeHtml(project.category)}</div>` : ""}
             <h1>${titleMarkup(project)}</h1>
-            <p class="lead">${leadMarkup(project.subtitle)}</p>
+            ${project.subtitle ? `<p class="lead">${leadMarkup(project.subtitle)}</p>` : ""}
+            ${publicationLinks(project)}
             ${metadata(project)}
           </div>
           ${logoMarkup(project)}
         </div>
       </section>
 
-      <section class="detail-brief">
+      ${!activityId || project.brief ? `<section class="detail-brief">
         <article>
           <h2>Brief</h2>
           ${paragraphMarkup(project.brief)}
         </article>
-      </section>
+      </section>` : ""}
 
       ${featureImage ? `
-        <section class="gallery-feature" aria-label="${project.title} featured image">
+        <section class="gallery-feature" aria-label="${escapeAttribute(project.title)} featured image">
           ${galleryItem(featureImage, "is-feature", false, true)}
         </section>
       ` : ""}
 
-      <section class="gallery-grid" aria-label="${project.title} images">
-        ${galleryImages.map((item) => galleryItem(item)).join("")}
-      </section>
+      <div class="gallery-sections ${galleryImages.some(item => item.layout === "wide") ? "has-wide-drawings" : ""}">
+        ${gallerySections.join("")}
+      </div>
 
-      <nav class="project-pagination" aria-label="Project navigation">
+      ${!activityId ? `<nav class="project-pagination" aria-label="Project navigation">
         <a href="project.html?project=${previous.id}">
           <span>Previous</span>
-          ${previous.title}
+          ${escapeHtml(previous.title)}
         </a>
         <a href="project.html?project=${next.id}">
           <span>Next</span>
-          ${next.title}
+          ${escapeHtml(next.title)}
         </a>
-      </nav>
+      </nav>` : ""}
 
       <div class="project-bottom-back">
-        <a class="text-link" href="index.html#work-${project.id}">Back to Selected Works</a>
+        <a class="text-link" href="${backHref}">${backLabel}</a>
       </div>
 
       <dialog class="image-lightbox" id="image-lightbox" aria-label="Image preview" aria-describedby="image-lightbox-caption" aria-hidden="true">
@@ -199,23 +242,9 @@
   }
 
   function setupProjectReveals() {
-    const targets = Array.from(document.querySelectorAll(".gallery-feature .gallery-item, .gallery-grid .gallery-item"));
-
-    targets.forEach((target) => target.setAttribute("data-project-reveal", ""));
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (!entry.isIntersecting) return;
-
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        });
-      },
-      { rootMargin: "0px 0px -10% 0px", threshold: 0.08 }
+    window.portfolioUI.revealDetails(
+      '.detail-hero > a, .detail-hero-copy > .section-kicker, .detail-hero-copy > h1, .detail-hero-copy > .lead, .project-publications > a, .detail-meta > div, .detail-hero-logo, .detail-brief h2, .detail-brief p, .gallery-feature .gallery-item, .gallery-grid .gallery-item, .project-pagination > a, .project-bottom-back > a'
     );
-
-    targets.forEach((target) => observer.observe(target));
   }
 
   function setupProjectPageTransitions() {
@@ -402,7 +431,7 @@
         <p class="lead">Select a project to view its detail page.</p>
         <div class="project-index">
           ${data.projects
-            .map((item) => `<a href="project.html?project=${item.id}">${item.title}</a>`)
+            .map((item) => `<a href="project.html?project=${encodeURIComponent(item.id)}">${escapeHtml(item.title)}</a>`)
             .join("")}
         </div>
       </section>

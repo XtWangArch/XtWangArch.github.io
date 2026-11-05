@@ -63,3 +63,15 @@ test('Experience is the final snap stop after Selected Works', () => {
   assert.match(html, /<section\s+id="timeline"[^>]*\bdata-snap-stop\b/);
   assert.ok(html.indexOf('id="timeline"') > html.indexOf('id="work-groups"'));
 });
+
+test('professional publications and Chaoyin pinned drawings stay explicitly configured', () => {
+  const projects = context.window.portfolioData.projects;
+  const chaoyin = projects.find(item => item.id === 'internship-01');
+  const drawings = chaoyin.gallery.filter(item => /claddingdesign/.test(item.image));
+  assert.equal(drawings.length, 2);
+  assert.ok(drawings.every(item => item.layout === 'full' && item.pinned === true));
+  assert.ok(chaoyin.gallery.filter(item => !drawings.includes(item)).every(item => item.layout !== 'wide'));
+  assert.ok(projects.find(item => item.id === 'internship-02').website.includes('hanling-museum-of-art'));
+  assert.equal(projects.find(item => item.id === 'internship-03').archdailyUrl,
+    'https://www.archdaily.com/1015855/whitestone-gallery-beijing-798-kengo-kuma-and-associates');
+});
