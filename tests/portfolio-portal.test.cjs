@@ -149,7 +149,7 @@ test('chooser uses plain rectangular buttons without changing the Other Work pre
   const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
   const chooser=html.split('id="portfolios"')[1].split('</section>')[0];
   assert.doesNotMatch(chooser,/portfolio-choice-preview/);
-  assert.match(html,/<p class="portfolio-choice-prompt">select a portfolio to view:<\/p>/);
+  assert.doesNotMatch(html,/select a portfolio to view:/);
   assert.match(html,/<span>Photography<br>&amp; Film Making<\/span>/);
 });
 
@@ -244,4 +244,24 @@ test('portrait journey hides the source frame as well as its image during transi
   const source = fs.readFileSync(path.join(__dirname, '../assets/js/main.js'), 'utf8');
   assert.match(source, /sourceFrame\.style\.visibility = moving \? "hidden" : ""/);
   assert.doesNotMatch(source, /source\.style\.visibility = moving/);
+});
+
+test('Architecture scrolling stops at its first project without blocking explicit navigation', () => {
+  const source=fs.readFileSync(path.join(__dirname,'../assets/js/main.js'),'utf8');
+  assert.match(source,/document.body.dataset.activePortfolio !== 'architecture'/);
+  assert.match(source,/if \(!target \|\| !architecture\?\.contains\(target\)\) return null/);
+  assert.match(source,/boundary === null \|\| architecture.contains\(stop\)/);
+  assert.match(source,/event.deltaY < 0 && scrollY <= boundary \+ 2/);
+  assert.match(source,/scrollY < boundary - 1/);
+});
+
+test('chooser magnetism stays bounded, excludes touch and respects reduced motion', () => {
+  const source=fs.readFileSync(path.join(__dirname,'../assets/js/main.js'),'utf8');
+  assert.match(source,/setupMagneticChoices\(\)/);
+  assert.match(source,/event.pointerType === 'touch'/);
+  assert.match(source,/closest.distance < 90/);
+  assert.match(source,/Math.max\(-18, Math.min\(18/);
+  assert.match(source,/state.button.style.translate/);
+  assert.match(source,/chooser.addEventListener\('pointerleave', release\)/);
+  assert.match(source,/motion.addEventListener\('change', restore\)/);
 });

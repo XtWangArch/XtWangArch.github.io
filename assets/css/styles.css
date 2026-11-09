@@ -567,6 +567,7 @@ body.is-choosing-portfolio .section-rail a:focus-visible,
   .portfolio-choice > .portfolio-choice-link {
     animation: none !important;
     transform: none !important;
+    translate: none !important;
     transition: none;
   }
   .portfolio-choice-caption { transform: none; transition-duration: 120ms; }

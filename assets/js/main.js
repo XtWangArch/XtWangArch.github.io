@@ -426,6 +426,61 @@
     schedule();
   }
 
+  function setupMagneticChoices() {
+    const chooser = document.querySelector('#portfolios');
+    const buttons = [...chooser.querySelectorAll(':scope > .portfolio-choice-link')];
+    const pointer = matchMedia('(hover: hover) and (pointer: fine)');
+    const motion = matchMedia('(prefers-reduced-motion: reduce)');
+    const states = buttons.map(button => ({ button, x: 0, y: 0, tx: 0, ty: 0 }));
+    let frame = 0, previous = 0;
+    const restore = () => {
+      cancelAnimationFrame(frame); frame = 0; previous = 0;
+      states.forEach(state => { state.x = state.y = state.tx = state.ty = 0; state.button.style.removeProperty('translate'); });
+    };
+    function tick(now) {
+      if (!pointer.matches || motion.matches || window.portfolioPortal?.busy) { restore(); return; }
+      const amount = 1 - Math.pow(.82, Math.min(32, previous ? now - previous : 16.67) / 16.67);
+      previous = now;
+      let moving = false;
+      states.forEach(state => {
+        state.x += (state.tx - state.x) * amount;
+        state.y += (state.ty - state.y) * amount;
+        if (Math.abs(state.tx - state.x) < .02) state.x = state.tx;
+        if (Math.abs(state.ty - state.y) < .02) state.y = state.ty;
+        state.button.style.translate = `${state.x}px ${state.y}px`;
+        moving ||= state.x !== state.tx || state.y !== state.ty;
+      });
+      frame = moving ? requestAnimationFrame(tick) : 0;
+      if (!moving) previous = 0;
+    }
+    const animate = () => { if (!frame) frame = requestAnimationFrame(tick); };
+    const release = () => { states.forEach(state => { state.tx = state.ty = 0; }); animate(); };
+    chooser.addEventListener('pointermove', event => {
+      if (event.pointerType === 'touch' || !pointer.matches || motion.matches || window.portfolioPortal?.busy) return;
+      const distances = states.map(state => {
+        const rect = state.button.getBoundingClientRect();
+        const dx = event.clientX - (rect.left + rect.width / 2 - state.x);
+        const dy = event.clientY - (rect.top + rect.height / 2 - state.y);
+        return { state, dx, dy, distance: Math.hypot(Math.max(0, Math.abs(dx) - rect.width / 2), Math.max(0, Math.abs(dy) - rect.height / 2)) };
+      }).sort((a, b) => a.distance - b.distance || Math.hypot(a.dx, a.dy) - Math.hypot(b.dx, b.dy));
+      states.forEach(state => { state.tx = state.ty = 0; });
+      const closest = distances[0];
+      if (closest && closest.distance < 90) {
+        const strength = 1 - closest.distance / 90;
+        closest.state.tx = Math.max(-18, Math.min(18, closest.dx * .14)) * strength;
+        closest.state.ty = Math.max(-12, Math.min(12, closest.dy * .18)) * strength;
+      }
+      animate();
+    }, { passive: true });
+    chooser.addEventListener('pointerleave', release);
+    window.addEventListener('scroll', release, { passive: true });
+    window.addEventListener('resize', restore, { passive: true });
+    window.addEventListener('blur', restore);
+    window.addEventListener('pagehide', restore);
+    pointer.addEventListener('change', restore);
+    motion.addEventListener('change', restore);
+  }
+
   function setupReveals() {
     const targets = [
       ".hero-copy",
@@ -461,6 +516,21 @@
     const selectedWorks = document.querySelector("#selected-works");
     const chooser = document.querySelector("#portfolios");
     if (allStops.length < 2 || !selectedWorks) return;
+    const architecture = document.querySelector('#architecture-portfolio');
+
+    function architectureEntryTop() {
+      if (window.portfolioPortal?.busy || document.body.dataset.activePortfolio !== 'architecture' || !selectedWorks.getClientRects().length) return null;
+      const target = document.getElementById(location.hash.slice(1));
+      if (!target || !architecture?.contains(target)) return null;
+      const first = selectedWorks.querySelector('.project-card');
+      return innerWidth <= 980 || !first ? pageTop(selectedWorks) : snapTop(first);
+    }
+
+    // Also contain native touch momentum and keyboard scrolling at the first project.
+    window.addEventListener('scroll', () => {
+      const boundary = architectureEntryTop();
+      if (boundary !== null && scrollY < boundary - 1) window.scrollTo({ top: boundary, behavior: 'instant' });
+    }, { passive: true });
 
     let wheelTotal = 0;
     let isSnapping = false;
@@ -499,9 +569,15 @@
     window.addEventListener("wheel", (event) => {
       if (event.ctrlKey || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
       if (event.defaultPrevented || window.photographyDirectory?.handleWheel(event)) return;
-      if (window.innerWidth <= 980) return;
       if (window.portfolioPortal?.busy) return;
-      const stops = allStops.filter((stop) => stop.getClientRects().length && !(stop.id === 'photography-works' && stop.querySelector('.project-card')));
+      const boundary = architectureEntryTop();
+      if (boundary !== null && event.deltaY < 0 && scrollY <= boundary + 2) {
+        event.preventDefault();
+        wheelTotal = 0;
+        return;
+      }
+      if (window.innerWidth <= 980) return;
+      const stops = allStops.filter((stop) => stop.getClientRects().length && (boundary === null || architecture.contains(stop)) && !(stop.id === 'photography-works' && stop.querySelector('.project-card')));
       const choosing = chooser && Math.abs(window.scrollY - pageTop(chooser)) < 40;
       if (choosing && event.deltaY > 0) {
         event.preventDefault();
@@ -614,6 +690,7 @@
   document.addEventListener("DOMContentLoaded", () => {
     renderProjects();
     setupPortfolioChoice();
+    setupMagneticChoices();
     setupProjectReturn();
     renderTimeline();
     setupProfileLayout();
