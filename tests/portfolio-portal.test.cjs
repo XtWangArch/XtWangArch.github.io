@@ -138,6 +138,21 @@ test('Architecture Other Work has one photography portfolio entry and no duplica
   assert.match(portal, /\(hovered \|\| crossEntry\) && previewCircle/);
 });
 
+test('chooser uses plain rectangular buttons without changing the Other Work preview circle', () => {
+  const css=fs.readFileSync(path.join(__dirname,'../assets/css/styles.css'),'utf8');
+  const script=fs.readFileSync(path.join(__dirname,'../assets/js/portfolio-portal.js'),'utf8');
+  assert.match(css,/\.portfolio-choice > \.portfolio-choice-link \{[^}]*height: var\(--choice-button-height\);[^}]*aspect-ratio: auto;[^}]*border: 0;[^}]*background: rgba\(21, 20, 19, \.16\)/);
+  assert.match(css,/animation: choiceTileBreathe 4\.4s ease-in-out infinite/);
+  assert.match(script,/preview.style.borderRadius = appearance.borderRadius/);
+  assert.match(script,/preview.style.filter = appearance.filter/);
+  assert.match(script,/preview.style.height = `\$\{previewRect.height\}px`/);
+  const html=fs.readFileSync(path.join(__dirname,'../index.html'),'utf8');
+  const chooser=html.split('id="portfolios"')[1].split('</section>')[0];
+  assert.doesNotMatch(chooser,/portfolio-choice-preview/);
+  assert.match(html,/<p class="portfolio-choice-prompt">select a portfolio to view:<\/p>/);
+  assert.match(html,/<span>Photography<br>&amp; Film Making<\/span>/);
+});
+
 test('outgoing header freezes before preparation and shares the outgoing radial mask', async () => {
   const h = harness(true, false, true);
   const done = h.portal.reveal(h.link, async () => {}, () => {});

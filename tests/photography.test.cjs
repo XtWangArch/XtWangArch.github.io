@@ -12,17 +12,15 @@ function model(data = {}) {
   return context.window.photographyModel;
 }
 
-test('directory bottom ignores momentum and requires two extra scroll gestures', () => {
-  const guard = model().createBottomGuard();
-  guard.arrive(0);
-  for (let time = 20; time <= 800; time += 20) assert.equal(guard.advance(100, time), false);
-  assert.equal(guard.advance(120, 1050), false);
-  assert.equal(guard.advance(120, 1300), true);
-  guard.reset();
-  assert.equal(guard.advance(120, 1600), false);
-  assert.equal(guard.advance(120, 2000), false);
-  assert.equal(guard.advance(120, 4500), false);
-  assert.equal(guard.advance(120, 4750), true);
+test('album directories stop at the bottom and use explicit footer navigation', () => {
+  assert.doesNotMatch(source,/createBottomGuard|bottomGuard/);
+  assert.match(source,/albumDirectory && direction > 0/);
+  assert.match(source,/direction < 0 && !slide && !nextView/);
+  assert.match(source,/aria-label="Photography and film collections, bottom"/);
+  assert.match(source,/Go to Architecture Portfolio/);
+  assert.match(source,/href="index.html#selected-works"/);
+  assert.match(source,/querySelectorAll\('\.photo-tabs'\)/);
+  assert.match(source,/location.hash !== '#photography-works'/);
 });
 test('photography keeps the uploaded order and never inserts the cover into the gallery', () => {
   const m = model(), item = {id:'test',cover:'cover.jpg',gallery:[{image:'second.jpg'},{image:'first.jpg'}]};

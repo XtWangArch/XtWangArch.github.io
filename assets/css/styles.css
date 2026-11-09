@@ -187,6 +187,8 @@ main {
 
 .portfolio-choice {
   --portfolio-lift: clamp(28px, 5svh, 56px);
+  --choice-button-height: 112px;
+  --choice-button-bottom: clamp(32px, 8svh, 72px);
   position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -246,6 +248,17 @@ main {
   transform: none;
 }
 
+.portfolio-choice-prompt {
+  position: absolute;
+  right: 20px;
+  bottom: calc(48px + var(--choice-button-bottom) + var(--choice-button-height) + 18px);
+  left: 20px;
+  max-width: none;
+  margin: 0;
+  text-align: center;
+  font: 400 18px/1.4 var(--font-main);
+}
+
 .portfolio-portrait-flight {
   position: fixed;
   top: 0;
@@ -261,7 +274,15 @@ main {
 
 .portfolio-choice > .portfolio-choice-link {
   align-self: end;
-  margin-bottom: calc(12svh + var(--portfolio-lift));
+  width: min(100%, 320px);
+  height: var(--choice-button-height);
+  min-height: 0;
+  aspect-ratio: auto;
+  margin-bottom: var(--choice-button-bottom);
+  padding: 16px 24px;
+  border: 0;
+  background: rgba(21, 20, 19, .16);
+  transition: transform 650ms var(--reveal-ease);
 }
 
 .photography-works {
@@ -299,11 +320,40 @@ main {
 
 .portfolio-choice > .portfolio-choice-link {
   font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 32px;
   font-weight: 300;
 }
 
 .portfolio-choice > .portfolio-choice-link span {
   text-shadow: none;
+  white-space: nowrap;
+}
+
+.portfolio-choice > .portfolio-choice-link:is(:hover, :focus-visible) {
+  animation: choiceTileBreathe 4.4s ease-in-out infinite;
+}
+
+.portfolio-choice > .portfolio-choice-link:is(:hover, :focus-visible) span {
+  transform: none;
+}
+
+.portfolio-choice > .portfolio-choice-link:is(:active, .is-pressed) {
+  animation: none;
+  transform: translateY(1px) scale(.97);
+  transition-duration: 100ms;
+}
+
+@keyframes choiceTileBreathe {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-4px) scale(1.015); }
+}
+
+@media (max-height: 740px) {
+  .portfolio-choice { --choice-button-height: 88px; }
+  .portfolio-choice > .portfolio-choice-link {
+    font-size: 24px;
+    padding: 12px;
+  }
 }
 
 .portfolio-choice-preview {
@@ -415,12 +465,14 @@ body.is-choosing-portfolio .section-rail a:focus-visible,
 }
 
 .portfolio-portal .portfolio-choice-caption,
+.portfolio-portal .portfolio-choice-prompt,
 .portfolio-portal .portfolio-portrait,
 .portfolio-portal .portfolio-choice-marker {
   transition: opacity 200ms ease;
 }
 
 .portfolio-portal.is-label-fading .portfolio-choice-caption,
+.portfolio-portal.is-label-fading .portfolio-choice-prompt,
 .portfolio-portal.is-label-fading .portfolio-portrait,
 .portfolio-portal.is-label-fading .portfolio-choice-marker {
   opacity: 0;
@@ -473,7 +525,13 @@ body.is-choosing-portfolio .section-rail a:focus-visible,
     font-size: 24px;
   }
 
+  .portfolio-choice > .portfolio-choice-link {
+    padding: 10px;
+    font-size: 22px;
+  }
+
   .portfolio-choice {
+    --choice-button-height: 88px;
     margin-right: calc(var(--gutter) * -1);
     margin-left: calc(var(--gutter) * -1);
     padding-right: var(--gutter);
@@ -482,6 +540,7 @@ body.is-choosing-portfolio .section-rail a:focus-visible,
   }
 
   .portfolio-choice-marker { left: var(--gutter); }
+  .portfolio-choice-prompt { font-size: 16px; }
   .portfolio-portrait { width: 160px; }
   .portfolio-choice-caption { top: calc(43% + 104px - var(--portfolio-lift)); font-size: 18px; }
   .portfolio-choice-preview { width: 132px; height: 132px; }
@@ -494,17 +553,28 @@ body.is-choosing-portfolio .section-rail a:focus-visible,
   }
 }
 
+@media (max-height: 620px) {
+  .portfolio-portrait { top: calc(38% - var(--portfolio-lift)); width: 128px; }
+  .portfolio-choice-caption { top: calc(38% + 84px - var(--portfolio-lift)); font-size: 16px; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .portfolio-choice-link span {
     transition: opacity 120ms ease;
     transform: none !important;
   }
   .portfolio-choice-preview { animation: none !important; }
+  .portfolio-choice > .portfolio-choice-link {
+    animation: none !important;
+    transform: none !important;
+    transition: none;
+  }
   .portfolio-choice-caption { transform: none; transition-duration: 120ms; }
 }
 
 @media (max-width: 360px) {
   .portfolio-choice-link { font-size: 22px; }
+  .portfolio-choice > .portfolio-choice-link { font-size: 18px; }
 }
 
 .hero-grid {

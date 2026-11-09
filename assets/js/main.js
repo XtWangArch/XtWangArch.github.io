@@ -66,18 +66,6 @@
       && initialTarget.id !== "other-work"
       && rememberedBranch === "photography"
     ));
-    const preview = chooser.querySelector('[data-portfolio="architecture"] .portfolio-choice-preview');
-    const coverImage = works.querySelector(".project-media img");
-    if (preview && coverImage) preview.style.backgroundImage = `url("${coverImage.src}")`;
-    const photoPreview = chooser.querySelector('[data-portfolio="photography"] .portfolio-choice-preview');
-    const landscapeImage = (data.photoCollections || [])
-      .filter(item => item.kind === 'landscape' && item.published !== false)
-      .flatMap(item => item.gallery || []).find(item => item.image)?.image;
-    if (photoPreview && landscapeImage) {
-      const variants = window.portfolioImageManifest?.[landscapeImage]?.sources;
-      const image = variants?.find(item => item.width >= 480)?.src || landscapeImage;
-      photoPreview.style.backgroundImage = `url(${JSON.stringify(image)})`;
-    }
 
     function alignWorksEntry() {
       const first = works.querySelector('.project-card');

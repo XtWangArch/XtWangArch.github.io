@@ -94,6 +94,10 @@
         preview.style.backgroundImage = appearance.backgroundImage;
         preview.style.backgroundColor = appearance.backgroundColor;
         preview.style.backgroundBlendMode = appearance.backgroundBlendMode;
+        preview.style.borderRadius = appearance.borderRadius;
+        preview.style.filter = appearance.filter;
+        preview.style.width = `${previewRect.width}px`;
+        preview.style.height = `${previewRect.height}px`;
         previewOpacity = Number(appearance.opacity);
         overlay.style.setProperty('--portal-preview-size', `${initialRadius * 2}px`);
         overlay.style.setProperty('--portal-preview-opacity', appearance.opacity);

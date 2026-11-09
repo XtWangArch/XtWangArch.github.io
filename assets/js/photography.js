@@ -25,26 +25,7 @@
   const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
   const clamp = (index, length) => Math.max(0, Math.min(length - 1, index));
   const rotationAllowed = state => state.view === 'commercial' && !state.paused && !state.reducedMotion && !state.hidden && !state.keyboardFocus && state.visible && !state.portalBusy;
-  function createBottomGuard() {
-    let state;
-    const reset = () => { state = null; };
-    const arrive = now => { state = { since: now, last: now, distance: 0, counted: true, attempts: 0 }; };
-    return { reset, arrive, advance(delta, now) {
-      if (!state) { arrive(now); return false; }
-      const gap = now - state.last;
-      if (gap > 2000) state.attempts = 0;
-      if (gap >= 160) { state.distance = 0; state.counted = false; }
-      state.last = now;
-      state.distance += Math.abs(delta);
-      // Ignore the arrival gesture and its momentum; count two fresh scroll gestures.
-      if (now - state.since >= 300 && !state.counted && state.distance >= 35) {
-        state.counted = true;
-        state.attempts++;
-      }
-      return state.attempts >= 2;
-    } };
-  }
-  window.photographyModel = { photos, cover, category, detailURL, returnURL, rotationAllowed, nextCommercialProject, nextAlbum, createBottomGuard };
+  window.photographyModel = { photos, cover, category, detailURL, returnURL, rotationAllowed, nextCommercialProject, nextAlbum };
 
   function swipe(element, callback) {
     let start;
@@ -77,7 +58,6 @@
     try { placeContext = JSON.parse(sessionStorage.getItem(`photo-${view}-context`) || sessionStorage.getItem('photo-elsewhere-context') || '{}'); } catch (_) {}
     let density = ['xs', 'sm', 'md'].includes(placeContext.density) ? placeContext.density : 'xs';
     let paused = settings.autoplay === false, wheelAt = -Infinity, wheelTotal = 0, wheelDirection = 0;
-    const bottomGuard = createBottomGuard();
     let timer, stageVersion = 0, viewVersion = 0, switching = false, featureAnimations = [], viewAnimation;
     let filmWheelSurface = null, filmWheelRest = 0;
     const ease = 'cubic-bezier(0.4, 0, 0.2, 1)';
@@ -92,14 +72,15 @@
       if (!animated || reduced()) { marker.getBoundingClientRect(); marker.style.transition = ''; }
     }
     function positionMarkers(animated = true) {
-      const tab = root.querySelector('[data-photo-view-tab][aria-pressed="true"]');
-      if (tab) {
+      root.querySelectorAll('.photo-tabs').forEach(barElement => {
+        const tab = barElement.querySelector('[data-photo-view-tab][aria-pressed="true"]');
+        if (!tab) return;
         const label = tab.getBoundingClientRect();
         const bar = tab.parentElement.getBoundingClientRect();
         // Client rectangles include CSS zoom/transforms; marker styles use local layout pixels.
         const scale = bar.width / (parseFloat(getComputedStyle(tab.parentElement).width) || bar.width);
-        if (label.width > 0) moveMarker(root.querySelector('.photo-tab-marker'), (label.left - bar.left) / scale, (label.bottom - bar.top) / scale - 2, label.width / scale, animated);
-      }
+        if (label.width > 0) moveMarker(barElement.querySelector('.photo-tab-marker'), (label.left - bar.left) / scale, (label.bottom - bar.top) / scale - 2, label.width / scale, animated);
+      });
       const dot = mount.querySelector('[data-photo-slide][aria-current="true"]');
       if (dot) moveMarker(mount.querySelector('.photo-dot-active'), dot.offsetLeft + (dot.offsetWidth - 8) / 2, dot.offsetTop + (dot.offsetHeight - 8) / 2, 8, animated);
     }
@@ -211,6 +192,9 @@
         const places = groups[view];
         mount.innerHTML = places.length ? `<div class="photo-density" role="group" aria-label="Thumbnail size">${['xs', 'sm', 'md'].map(size => `<button type="button" data-photo-density="${size}" aria-pressed="${size === 'xs'}">${size.toUpperCase()}</button>`).join('')}</div><div class="photo-place-list" data-density="${density}">${places.map(place => `<section class="photo-place" data-photo-place-id="${esc(place.id)}"><a class="photo-place-heading" href="${detailURL(place)}"><h3>${esc(place.title)}</h3><span class="photo-place-count">${photos(place).length}</span></a><div class="photo-contact-sheet">${photos(place).length ? photos(place).map(photo => `<a href="${detailURL(place)}" aria-label="View ${esc(place.title)}">${media(photo.image, photo.alt || photo.label, '180px')}</a>`).join('') : '<span class="photo-place-pending">Images forthcoming</span>'}</div></section>`).join('')}</div>` : `<div class="photo-empty"><h3>${esc(labels[view])}</h3><p>New work coming soon.</p></div>`;
       }
+      if (groups[view]) {
+        mount.insertAdjacentHTML('beforeend', `<footer class="photo-directory-footer"><nav class="photo-tabs" aria-label="Photography and film collections, bottom">${Object.entries(labels).map(([key, label]) => `<button type="button" data-photo-view-tab="${key}" aria-pressed="${key === view}" aria-controls="photo-directory">${esc(label)}</button>`).join('')}<span class="photo-tab-marker" aria-hidden="true"></span></nav><a class="button accent" href="index.html#selected-works">Go to Architecture Portfolio</a></footer>`);
+      }
       icons();
       if (groups[view]?.length) {
         root.querySelectorAll('[data-photo-density]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.photoDensity === density)));
@@ -224,7 +208,6 @@
       window.scrollTo({ top: Math.ceil(section.getBoundingClientRect().top + scrollY), behavior: 'instant' });
     }
     async function switchView(next, manual = true) {
-      bottomGuard.reset();
       if (next === view) { alignSection(); return; }
       const filmTransition = view === 'film' || next === 'film';
       const version = ++viewVersion;
@@ -252,7 +235,11 @@
     }
     root.addEventListener('click', event => {
       const tab = event.target.closest('[data-photo-view-tab]');
-      if (tab) { switchView(tab.dataset.photoViewTab); return; }
+      if (tab) {
+        switchView(tab.dataset.photoViewTab);
+        if (tab.closest('.photo-directory-footer')) root.querySelector(`.photo-toolbar [data-photo-view-tab="${tab.dataset.photoViewTab}"]`).focus({ preventScroll: true });
+        return;
+      }
       const dot = event.target.closest('[data-photo-slide]');
       if (dot) { current = Number(dot.dataset.photoSlide); stage(true); remember(); startTimer(); return; }
       const density = event.target.closest('[data-photo-density]');
@@ -276,31 +263,26 @@
       if (rect.top > window.portfolioUI.headerHeight() + 60 || rect.bottom < innerHeight / 2) return false;
       const direction = Math.sign(event.deltaY);
       if (!direction) return false;
-      const guardedBottom = direction > 0 && ['journey', 'landscape'].includes(view);
-      if (!guardedBottom) bottomGuard.reset();
+      const albumDirectory = Boolean(groups[view]);
       const sectionTop = root.closest('#photography-works').getBoundingClientRect().top;
-      if (!switching && ((direction < 0 && sectionTop < -24) || (direction > 0 && rect.bottom > innerHeight + (guardedBottom ? 2 : 24)))) {
-        bottomGuard.reset();
+      if (!switching && ((direction < 0 && sectionTop < -2) || (direction > 0 && rect.bottom > innerHeight + (albumDirectory ? 2 : 24)))) {
         const remaining = direction < 0 ? -sectionTop : rect.bottom - innerHeight;
         if (Math.abs(event.deltaY) >= remaining) {
           event.preventDefault(); event.stopPropagation();
           window.scrollBy({ top: direction * remaining, behavior: 'instant' });
           wheelAt = performance.now(); wheelTotal = 0;
-          if (guardedBottom) bottomGuard.arrive(wheelAt);
         }
         return true;
       }
       const order = Object.keys(labels), index = order.indexOf(view);
       const slide = view === 'commercial' && ((direction > 0 && current < commercial.length - 1) || (direction < 0 && current > 0));
       const nextView = order[index + direction];
-      if (!switching && !slide && !nextView) return false;
-      event.preventDefault(); event.stopPropagation();
-      if (guardedBottom) {
-        if (switching || !bottomGuard.advance(event.deltaY, performance.now())) return true;
-        wheelTotal = 0; wheelAt = performance.now();
-        switchView(nextView);
+      if ((albumDirectory && direction > 0) || (direction < 0 && !slide && !nextView)) {
+        event.preventDefault(); event.stopPropagation();
         return true;
       }
+      if (!switching && !slide && !nextView) return false;
+      event.preventDefault(); event.stopPropagation();
       if (switching || performance.now() - wheelAt < 900) return true;
       if (direction !== wheelDirection) { wheelTotal = 0; wheelDirection = direction; }
       wheelTotal += Math.abs(event.deltaY);
@@ -361,7 +343,6 @@
       try { sessionStorage.setItem(`photo-${view}-context`, JSON.stringify({ ...placeContext, density })); } catch (_) {}
     }
     window.photographyDirectory = { handleWheel, reset() {
-      bottomGuard.reset();
       viewVersion++; stageVersion++; switching = false; viewAnimation?.cancel();
       featureAnimations.forEach(animation => animation.cancel()); featureAnimations = [];
       current = 0; view = 'commercial'; placeReturn = null; mount.replaceChildren();
@@ -369,6 +350,15 @@
       return Promise.resolve(ready).then(() => featureAnimations.forEach(animation => animation.finish()));
     } };
     renderView();
+    // Native touch momentum can continue after touchend; keep it inside this portfolio.
+    addEventListener('scroll', () => {
+      if (switching || window.portfolioPortal?.busy || location.hash !== '#photography-works' || document.body.dataset.activePortfolio !== 'photography' || !root.getClientRects().length) return;
+      const section = root.closest('#photography-works');
+      const top = section.getBoundingClientRect().top + scrollY;
+      const bottom = Math.max(top, root.getBoundingClientRect().bottom + scrollY - innerHeight);
+      const bounded = Math.max(top, groups[view] ? Math.min(bottom, scrollY) : scrollY);
+      if (Math.abs(bounded - scrollY) > 1) window.scrollTo({ top: bounded, behavior: 'instant' });
+    }, { passive: true });
     const toolbar = root.querySelector('.photo-toolbar');
     const measure = (animated = false) => { root.style.setProperty('--photo-toolbar-height', `${toolbar.offsetHeight}px`); positionMarkers(animated); centerFilmWheelSurface(); };
     // A late font can resize the labels without changing the outer browser dimensions.
