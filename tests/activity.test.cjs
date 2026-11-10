@@ -73,3 +73,18 @@ test('Chaoyin cladding drawings stay directly below the feature before shuffled 
     assert.equal((html.match(/data-full-image=/g) || []).length, 7);
   }
 });
+
+test('Mycelium research drawings stay full-width directly below its impression', () => {
+  for(let attempt=0;attempt<5;attempt++){
+    const {html,context}=render('?project=academic-01');
+    const items=context.window.portfolioData.projects[0].gallery;
+    const pinned=items.filter(item=>item.pinned===true);
+    assert.deepEqual(Array.from(pinned,item=>item.label),['Enigma Field','Site History']);
+    assert.ok(pinned.every(item=>item.layout==='full'));
+    const section=html.indexOf('gallery-grid gallery-pinned');
+    const enigma=html.indexOf('data-full-image="assets/images/projects/academic-01/project1_enigmafield.jpg"');
+    const history=html.indexOf('data-full-image="assets/images/projects/academic-01/project1_mayfieldhistory.jpg"');
+    const rest=html.indexOf('section class="gallery-grid"',section);
+    assert.ok(html.indexOf('class="gallery-feature"')<section&&section<enigma&&enigma<history&&history<rest);
+  }
+});

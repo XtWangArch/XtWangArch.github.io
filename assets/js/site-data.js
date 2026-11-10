@@ -104,11 +104,15 @@ window.portfolioData = {
         {
           "label": "Enigma Field",
           "image": "assets/images/projects/academic-01/project1_enigmafield.jpg",
+          "layout": "full",
+          "pinned": true,
           "caption": "The Enigma Field"
         },
         {
           "label": "Site History",
           "image": "assets/images/projects/academic-01/project1_mayfieldhistory.jpg",
+          "layout": "full",
+          "pinned": true,
           "caption": "Site history"
         },
         {
