@@ -100,6 +100,38 @@
       return stop;
     };
 
+    let cancelSectionNavigation = () => {};
+    function navigateToSection(target) {
+      cancelSectionNavigation();
+      const token = {};
+      const inputs = new AbortController();
+      let frame = 0, settled = 0;
+      const start = performance.now();
+      window.portfolioUI.sectionNavigation = token;
+      const clear = () => {
+        cancelAnimationFrame(frame);
+        inputs.abort();
+        if (window.portfolioUI.sectionNavigation === token) delete window.portfolioUI.sectionNavigation;
+      };
+      cancelSectionNavigation = clear;
+      ['wheel', 'touchstart', 'pointerdown', 'keydown', 'pagehide'].forEach(type => {
+        window.addEventListener(type, clear, { capture: true, passive: true, signal: inputs.signal });
+      });
+      const top = () => Math.max(0, Math.min(document.documentElement.scrollHeight - innerHeight, navigationTop(target)));
+      const check = now => {
+        settled = Math.abs(scrollY - top()) < 2 ? settled + 1 : 0;
+        if (settled >= 2 || now - start > 2200) {
+          window.scrollTo({ top: top(), behavior: 'instant' });
+          clear();
+          return;
+        }
+        frame = requestAnimationFrame(check);
+      };
+      alignWorksEntry();
+      window.scrollTo({ top: top(), behavior: window.portfolioUI.reducedMotion() ? 'instant' : 'smooth' });
+      frame = requestAnimationFrame(check);
+    }
+
     // Hidden branches must be opened before resolving navigation or return anchors.
     document.addEventListener("click", (event) => {
       const link = event.target.closest('a[href^="#"]');
@@ -114,9 +146,10 @@
       if (!target || !architecture.contains(target)) return;
       event.preventDefault();
       architecture.hidden = false;
+      if (target.id === 'other-work') selectBranch(false);
       const destination = target === works && !photography.hidden ? photography : target;
       history.pushState(null, "", `#${destination.id}`);
-      window.scrollTo({ top: navigationTop(destination), behavior: window.portfolioUI.reducedMotion() ? "instant" : "smooth" });
+      navigateToSection(destination);
     });
 
     window.addEventListener("hashchange", () => {
@@ -519,7 +552,7 @@
     const architecture = document.querySelector('#architecture-portfolio');
 
     function architectureEntryTop() {
-      if (window.portfolioPortal?.busy || document.body.dataset.activePortfolio !== 'architecture' || !selectedWorks.getClientRects().length) return null;
+      if (window.portfolioPortal?.busy || window.portfolioUI.sectionNavigation || document.body.dataset.activePortfolio !== 'architecture' || !selectedWorks.getClientRects().length) return null;
       const target = document.getElementById(location.hash.slice(1));
       if (!target || !architecture?.contains(target)) return null;
       const first = selectedWorks.querySelector('.project-card');
@@ -667,7 +700,7 @@
       }
       let top = pageTop(section);
       if (["selected-works", "photography-works"].includes(section.id) && innerWidth > 980 && section.querySelector('.project-card')) top = snapTop(section.querySelector(".project-card"));
-      else if (!section.hasAttribute("data-snap-stop")) top -= window.portfolioUI.headerHeight();
+      else top -= parseFloat(getComputedStyle(section).scrollMarginTop) || 0;
       const marker = link.getBoundingClientRect();
       const numberHeight = link.querySelector("span").offsetHeight;
       return { link, top: Math.min(maxScroll, Math.max(0, top)), point: marker.top + numberHeight / 2 - track.top };

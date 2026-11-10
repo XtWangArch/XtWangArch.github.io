@@ -253,6 +253,9 @@ test('Architecture scrolling stops at its first project without blocking explici
   assert.match(source,/boundary === null \|\| architecture.contains\(stop\)/);
   assert.match(source,/event.deltaY < 0 && scrollY <= boundary \+ 2/);
   assert.match(source,/scrollY < boundary - 1/);
+  assert.match(source,/window.portfolioUI.sectionNavigation \|\| document.body.dataset.activePortfolio/);
+  assert.match(source,/navigateToSection\(destination\)/);
+  assert.match(source,/delete window.portfolioUI.sectionNavigation/);
 });
 
 test('chooser magnetism stays bounded, excludes touch and respects reduced motion', () => {

@@ -5,7 +5,7 @@ window.portfolioData = {
   "links": {
     "email": "x.wangarch@gmail.com",
     "linkedin": "https://www.linkedin.com/in/xitao-wang-architecture/",
-    "instagram": "https://www.instagram.com/xtwang10/",
+    "instagram": "https://www.instagram.com/xitao_pics/",
     "photographyInstagram": "https://www.instagram.com/xitao_pics/",
     "youtube": "https://www.youtube.com/@lucaswang6740",
     "msa": "#"
