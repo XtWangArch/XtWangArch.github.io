@@ -76,7 +76,7 @@
   }
   function videoEditor(base){return field('视频标题（无障碍名称）',[...base,'title'])+field('YouTube 观看链接',[...base,'url'])+field('嵌入链接（自动从观看链接生成，也可手动改）',[...base,'youtubeEmbed']);}
   function renderSettings(){const names={email:'Email',linkedin:'LinkedIn',instagram:'个人 Instagram',photographyInstagram:'摄影 Instagram',youtube:'YouTube',msa:'MSA Graduate Page'};
-    $('#editor').innerHTML=`<div class="settings-grid"><section><h2>联系方式与跳转链接</h2>${Object.entries(names).map(([key,name])=>field(name,['data','links',key])).join('')}</section><section><h2>下载文件</h2>${imageField('PDF CV',['data','pdfs','cv'],'pdf')}<p class="hint">上传新 PDF 后保存，所有 Download CV 按钮将使用新文件。这里不会上传 PDF Portfolio。</p></section></div>`;
+    $('#editor').innerHTML=`<div class="settings-grid"><section><h2>联系方式与跳转链接</h2>${Object.entries(names).map(([key,name])=>field(name,['data','links',key])).join('')}</section><section><h2>下载文件</h2>${imageField('PDF CV & Portfolio',['data','pdfs','cv'],'pdf')}<p class="hint">上传新 PDF 后保存，所有 Download CV & Portfolio 按钮将使用新文件。</p></section></div>`;
   }
   async function renderBackups(){ $('#editor').innerHTML='<p class="loading">正在读取保存记录…</p>';try{const result=await api('/api/backups');if(view!=='backups')return;$('#editor').innerHTML=`<p class="hint">每次保存前会备份原有网站内容。恢复之前也会再备份当前版本。图片原文件不会随内容恢复而删除。</p><div class="backup-list">${result.items.map(item=>`<article><div><strong>${esc(new Date(item.date).toLocaleString('zh-CN'))}</strong><small>${esc(item.note)} · ${item.files.length} 个文件</small></div><button data-action="restore" data-id="${esc(item.id)}">${icon('history')}恢复此版本</button></article>`).join('')||'<div class="empty">第一次保存后，这里会出现记录。</div>'}</div>`;icons();}catch(error){notice(error.message,true);}}
 

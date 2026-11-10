@@ -64,6 +64,20 @@ test('Experience is the final snap stop after Selected Works', () => {
   assert.ok(html.indexOf('id="timeline"') > html.indexOf('id="work-groups"'));
 });
 
+test('all CV downloads use the current combined CV and Portfolio PDF', () => {
+  const source=context.window.portfolioData.pdfs.cv;
+  assert.equal(source,'assets/pdfs/Xitao_Wang_CV+Portfolio.pdf');
+  const file=path.join(root,source),fd=fs.openSync(file,'r'),header=Buffer.alloc(5);
+  try { fs.readSync(fd,header,0,5,0); } finally { fs.closeSync(fd); }
+  assert.equal(header.toString(),'%PDF-');
+  for(const page of ['index.html','cv.html']){
+    const html=fs.readFileSync(path.join(root,page),'utf8');
+    const buttons=[...html.matchAll(/<a\b[^>]*data-download="cv"[^>]*>([\s\S]*?)<\/a>/g)];
+    assert.equal(buttons.length,page==='index.html'?2:1);
+    assert.ok(buttons.every(button=>button[0].includes(source)&&button[1].trim()==='Download CV &amp; Portfolio'));
+  }
+});
+
 test('professional publications and Chaoyin pinned drawings stay explicitly configured', () => {
   const projects = context.window.portfolioData.projects;
   const chaoyin = projects.find(item => item.id === 'internship-01');

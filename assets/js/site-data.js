@@ -1,6 +1,6 @@
 window.portfolioData = {
   "pdfs": {
-    "cv": "assets/pdfs/CV_XitaoWang.pdf"
+    "cv": "assets/pdfs/Xitao_Wang_CV+Portfolio.pdf"
   },
   "links": {
     "email": "x.wangarch@gmail.com",
