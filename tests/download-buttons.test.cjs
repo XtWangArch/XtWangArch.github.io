@@ -22,3 +22,13 @@ test('glass loading references are removed and the original splash and video cov
   assert.match(html, /class="hero-cover-video"/);
   assert.doesNotMatch(html, /assets\/cover\/|liquid-glass|glass-loading/);
 });
+
+test('Contact puts the download first with View CV and MSA on the next row', () => {
+  const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+  const contact = html.slice(html.indexOf('<section id="contact"'));
+  assert.match(contact, /class="button-stack contact-actions">\s*<a class="button accent cv-download"/);
+  assert.match(contact, /<div class="button-row">\s*<a class="button accent" href="cv.html\?return=contact">[\s\S]*?data-social="msa"/);
+  const profile = html.slice(html.indexOf('<section id="profile-intro"'), html.indexOf('<section id="portfolios"'));
+  assert.match(profile, /class="button-row hero-actions"/);
+  assert.doesNotMatch(profile, /contact-actions/);
+});

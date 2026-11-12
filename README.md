@@ -6,7 +6,8 @@ This repository is a static GitHub Pages portfolio website for Xitao Wang. It is
 
 - Reverted the Liquid Glass experiment completely. The original orange three-second XITAO / PORTFOLIO percentage loading animation and expanding type-mask transition are restored. The original Hero video, inverse dots and breathing logo are unchanged. The ReactDrops files, React entry and build configuration were removed; no React build is required.
 - Profile and Contact's **Download CV & Portfolio** links now use the same dark-red accent fill and hover treatment as **View CV**. They retain the combined PDF URL and native `download` behavior. Each matches its section's **Email Me** button dimensions: Profile 176 x 36px (shrinks with the narrow-screen contact column), Contact 260 x 62px (constrained to available width). The separate CV page is unchanged.
-- Local preview: `http://127.0.0.1:5173/index.html`. These changes have not been pushed to GitHub.
+- Local preview: `http://127.0.0.1:5173/index.html`. Check GitHub's latest commit and Pages deployment for the published revision.
+- Follow-up: refreshed the combined PDF from the same Application source file. Contact now places **Download CV & Portfolio** alone on the first row, followed by **View CV** and **MSA Graduate Page** together on the second row, using the existing `button-stack` pattern. Profile's button arrangement is unchanged.
 
 This README is also the handoff note for continuing work in future Codex conversations. It records the design requirements, implemented changes, current structure, data conventions, and the bugs that have already been fixed.
 
