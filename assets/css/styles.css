@@ -1038,6 +1038,24 @@ p {
   color: var(--ink);
 }
 
+.button.cv-download {
+  width: min(100%, 260px);
+  min-height: 62px;
+  padding: 18px 30px;
+  font-size: 13px;
+  text-align: center;
+}
+
+.profile-panel-copy .button.cv-download {
+  width: min(176px, calc(100% - 192px));
+  height: 36px;
+  min-height: 36px;
+  padding: 4px 10px;
+  font-size: 11px;
+  line-height: 13px;
+  flex-shrink: 0;
+}
+
 .section-heading {
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(280px, 0.55fr);
@@ -1460,6 +1478,10 @@ p {
   font-style: italic;
   line-height: 1.25;
   font-family: var(--font-main);
+}
+
+.cv-section-work-experience .cv-description {
+  font-style: normal;
 }
 
 .cv-detail-list {
@@ -2743,6 +2765,10 @@ body.has-lightbox {
 }
 
 @media (max-width: 400px) {
+  .profile-panel-copy .button.cv-download {
+    width: min(176px, calc(100% - 160px));
+  }
+
   .profile-contact-links {
     grid-template-columns: minmax(0, 1fr) 144px;
     gap: 16px;
