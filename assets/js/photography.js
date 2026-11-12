@@ -9,7 +9,7 @@
   const photos = collection => (collection.gallery || []).filter(item => item.image);
   const cover = collection => collection.cover || photos(collection)[0]?.image || '';
   const category = collection => collection.kind === 'elsewhere' ? 'journey' : collection.kind;
-  const detailURL = collection => `photography.html?collection=${encodeURIComponent(collection.id)}`;
+  const detailURL = (collection, index) => `photography.html?collection=${encodeURIComponent(collection.id)}${Number.isInteger(index) && index >= 0 ? `#photo-${index + 1}` : ''}`;
   const returnURL = collection => `index.html?photo=${encodeURIComponent(collection.id)}&photo-view=${category(collection)}#photography-works`;
   const nextAlbum = collection => {
     const albums = collections.filter(item => category(item) === category(collection));
@@ -24,8 +24,13 @@
   const emptyCover = () => `<div class="photo-empty-cover">${icon('image')}<span>Images forthcoming</span></div>`;
   const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
   const clamp = (index, length) => Math.max(0, Math.min(length - 1, index));
+  const entryIndex = (hash, length) => {
+    const match = /^#photo-(\d+)$/.exec(hash);
+    const requested = match ? Number(match[1]) - 1 : 0;
+    return clamp(Number.isSafeInteger(requested) ? requested : 0, length);
+  };
   const rotationAllowed = state => state.view === 'commercial' && !state.paused && !state.reducedMotion && !state.hidden && !state.keyboardFocus && state.visible && !state.portalBusy;
-  window.photographyModel = { photos, cover, category, detailURL, returnURL, rotationAllowed, nextCommercialProject, nextAlbum };
+  window.photographyModel = { photos, cover, category, detailURL, returnURL, rotationAllowed, nextCommercialProject, nextAlbum, entryIndex };
 
   function swipe(element, callback) {
     let start;
@@ -190,7 +195,7 @@
       }
       else {
         const places = groups[view];
-        mount.innerHTML = places.length ? `<div class="photo-density" role="group" aria-label="Thumbnail size">${['xs', 'sm', 'md'].map(size => `<button type="button" data-photo-density="${size}" aria-pressed="${size === 'xs'}">${size.toUpperCase()}</button>`).join('')}</div><div class="photo-place-list" data-density="${density}">${places.map(place => `<section class="photo-place" data-photo-place-id="${esc(place.id)}"><a class="photo-place-heading" href="${detailURL(place)}"><h3>${esc(place.title)}</h3><span class="photo-place-count">${photos(place).length}</span></a><div class="photo-contact-sheet">${photos(place).length ? photos(place).map(photo => `<a href="${detailURL(place)}" aria-label="View ${esc(place.title)}">${media(photo.image, photo.alt || photo.label, '180px')}</a>`).join('') : '<span class="photo-place-pending">Images forthcoming</span>'}</div></section>`).join('')}</div>` : `<div class="photo-empty"><h3>${esc(labels[view])}</h3><p>New work coming soon.</p></div>`;
+        mount.innerHTML = places.length ? `<div class="photo-density" role="group" aria-label="Thumbnail size">${['xs', 'sm', 'md'].map(size => `<button type="button" data-photo-density="${size}" aria-pressed="${size === 'xs'}">${size.toUpperCase()}</button>`).join('')}</div><div class="photo-place-list" data-density="${density}">${places.map(place => `<section class="photo-place" data-photo-place-id="${esc(place.id)}"><a class="photo-place-heading" href="${detailURL(place)}"><h3>${esc(place.title)}</h3><span class="photo-place-count">${photos(place).length}</span></a><div class="photo-contact-sheet">${photos(place).length ? photos(place).map((photo, i) => `<a href="${detailURL(place, i)}" aria-label="View ${esc(photo.label || place.title)}, photograph ${i + 1}">${media(photo.image, photo.alt || photo.label, '180px')}</a>`).join('') : '<span class="photo-place-pending">Images forthcoming</span>'}</div></section>`).join('')}</div>` : `<div class="photo-empty"><h3>${esc(labels[view])}</h3><p>New work coming soon.</p></div>`;
       }
       if (groups[view]) {
         mount.insertAdjacentHTML('beforeend', `<footer class="photo-directory-footer"><nav class="photo-tabs" aria-label="Photography and film collections, bottom">${Object.entries(labels).map(([key, label]) => `<button type="button" data-photo-view-tab="${key}" aria-pressed="${key === view}" aria-controls="photo-directory">${esc(label)}</button>`).join('')}<span class="photo-tab-marker" aria-hidden="true"></span></nav><a class="button accent" href="index.html#selected-works">Go to Architecture Portfolio</a></footer>`);
@@ -511,7 +516,7 @@
       icons();
       return;
     }
-    let current = clamp((Number(location.hash.replace('#photo-', '')) || 1) - 1, items.length);
+    let current = entryIndex(location.hash, items.length);
     const open = lightbox(items, next => { if (!isJourney) setSlide(next); });
     function remember() { history.replaceState(history.state, '', `#photo-${current + 1}`); }
     function setSlide(next) {
@@ -541,7 +546,7 @@
       remember();
     }
     if (isJourney) {
-      root.innerHTML = `<header class="photo-journey-heading"><h1>${esc(item.title)}</h1>${item.year ? `<span>${esc(item.year)}</span>` : ''}</header><div class="photo-journey-stream">${items.map((photo, i) => `<button class="photo-stream-item" type="button" data-photo-open="${i}" aria-label="Enlarge ${esc(photo.label || item.title)}">${media(photo.image, photo.alt || photo.label, '(max-width: 980px) 96vw, 78vw', i === 0)}</button>`).join('')}</div><span class="photo-stream-counter" aria-label="Current photograph">${count(0, items.length)}</span>${footer}`;
+      root.innerHTML = `<header class="photo-journey-heading"><h1>${esc(item.title)}</h1>${item.year ? `<span>${esc(item.year)}</span>` : ''}</header><div class="photo-journey-stream">${items.map((photo, i) => `<button class="photo-stream-item" id="photo-${i + 1}" type="button" data-photo-open="${i}" aria-label="Enlarge ${esc(photo.label || item.title)}">${media(photo.image, photo.alt || photo.label, '(max-width: 980px) 96vw, 78vw', i === 0 || i === current)}</button>`).join('')}</div><span class="photo-stream-counter" aria-label="Current photograph">${count(current, items.length)}</span>${footer}`;
       if (item.brief) root.querySelector('.photo-journey-heading').insertAdjacentHTML('afterend', `<details class="photo-details"><summary>Details</summary><p>${esc(item.brief)}</p></details>`);
       const streamItems = [...root.querySelectorAll('[data-photo-open]')];
       streamItems.forEach(button => button.onclick = () => open(Number(button.dataset.photoOpen), button));
@@ -556,6 +561,31 @@
         });
       };
       addEventListener('scroll', progress, { passive: true }); progress();
+      if (/^#photo-\d+$/.test(location.hash)) {
+        const target = streamItems[current];
+        const entryHash = location.hash;
+        const controller = new AbortController();
+        let deadline;
+        const align = () => {
+          if (controller.signal.aborted || location.hash !== entryHash) return;
+          const bounds = target.getBoundingClientRect();
+          const header = document.querySelector('.photo-page-header')?.getBoundingClientRect().height || 0;
+          const offset = header + Math.max(0, (innerHeight - header - bounds.height) / 2);
+          window.scrollTo({ top: Math.max(0, bounds.top + scrollY - offset), behavior: 'instant' });
+        };
+        const observer = new ResizeObserver(align);
+        observer.observe(root);
+        const stop = () => { clearTimeout(deadline); controller.abort(); observer.disconnect(); };
+        ['wheel', 'pointerdown', 'keydown', 'touchstart', 'click', 'pagehide', 'hashchange'].forEach(type => addEventListener(type, stop, { passive: true, signal: controller.signal }));
+        root.addEventListener('load', align, { capture: true, signal: controller.signal });
+        document.fonts?.ready.then(align);
+        const settled = () => { align(); clearTimeout(deadline); deadline = setTimeout(stop, 1800); };
+        deadline = setTimeout(stop, 6500);
+        if (document.readyState === 'complete') settled();
+        else addEventListener('load', settled, { once: true, signal: controller.signal });
+        requestAnimationFrame(align);
+        align();
+      }
     } else {
       root.innerHTML = `<section class="photo-commercial-gallery" aria-label="${esc(item.title)} photographs"><header class="photo-gallery-heading"><h1>${esc(item.title)}</h1><div class="photo-gallery-sub">${item.year ? `<span>${esc(item.year)}</span>` : ''}${item.location ? `<span>${esc(item.location)}</span>` : ''}</div>${albumLink}</header><div class="photo-detail-viewer">${command('previous', 'Previous photograph', 'chevron-left')}<div class="photo-detail-image"></div><div class="photo-next-slot">${command('next', 'Next photograph', 'chevron-right')}${nextProjectLink}</div></div><div class="photo-detail-controls"><div class="photo-thumbnails" aria-label="Photographs">${items.map((photo, i) => `<button type="button" class="photo-thumbnail" data-photo-thumb="${i}" aria-label="Photograph ${i + 1}: ${esc(photo.label || item.title)}">${media(photo.image, '', '80px')}</button>`).join('')}</div><span class="photo-counter" aria-live="polite"></span></div></section>${detailsMarkup}${footer}`;
       setupCommercialDetails(root);

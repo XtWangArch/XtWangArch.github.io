@@ -2,6 +2,11 @@
 
 This repository is a static GitHub Pages portfolio website for Xitao Wang. It is built with plain HTML, CSS, and JavaScript, with most editable content stored in `assets/js/site-data.js`.
 
+## Photography Image Links (2026-11-12)
+
+- Journey, Landscape and Architecture contact-sheet thumbnails link directly to their corresponding photograph using `photography.html?collection=ALBUM_ID#photo-N` (one-based photograph number, uploaded gallery order). Album headings and Next album links remain album-level URLs without a photograph hash.
+- Stream detail pages position the requested image after fonts/images settle and prioritize that image's loading. Initial alignment stops as soon as the visitor scrolls, clicks or uses the keyboard, and always expires automatically. Invalid image numbers fall back safely or clamp to the available album. Commercial details continue using the same hash for their single-image viewer.
+
 ## Loading And Download Buttons (2026-11-12)
 
 - Reverted the Liquid Glass experiment completely. The original orange three-second XITAO / PORTFOLIO percentage loading animation and expanding type-mask transition are restored. The original Hero video, inverse dots and breathing logo are unchanged. The ReactDrops files, React entry and build configuration were removed; no React build is required.

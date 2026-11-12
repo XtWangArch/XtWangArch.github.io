@@ -36,6 +36,24 @@ test('collection detail and return links identify the correct collection and dir
   assert.equal(m.returnURL({id:'mountains',kind:'landscape'}),'index.html?photo=mountains&photo-view=landscape#photography-works');
   assert.equal(m.returnURL({id:'buildings',kind:'architecture'}),'index.html?photo=buildings&photo-view=architecture#photography-works');
 });
+
+test('each contact-sheet photograph has its own album position without changing album-level links', () => {
+  const m=model(), item={id:'album & one',gallery:[{image:'one.jpg'},{image:'two.jpg'}]};
+  assert.equal(m.detailURL(item),'photography.html?collection=album%20%26%20one');
+  assert.equal(m.detailURL(item,0),'photography.html?collection=album%20%26%20one#photo-1');
+  assert.equal(m.detailURL(item,1),'photography.html?collection=album%20%26%20one#photo-2');
+  assert.equal(m.detailURL(item,-1),m.detailURL(item));
+  assert.match(source,/detailURL\(place, i\)/);
+  assert.match(source,/id="photo-\$\{i \+ 1\}"/);
+});
+
+test('requested photographs use valid integer positions and clamp to the available album', () => {
+  const m=model();
+  assert.equal(m.entryIndex('#photo-3',5),2);
+  assert.equal(m.entryIndex('#photo-999',5),4);
+  for(const hash of ['', '#photo-0','#photo--2','#photo-1.5','#photo-Infinity','#photo-999999999999999999999']) assert.equal(m.entryIndex(hash,5),0,hash);
+  assert.match(source,/controller.signal.aborted \|\| location.hash !== entryHash/);
+});
 test('photography schema rejects duplicate IDs, invalid categories, galleries and unsafe media', () => {
   const item={id:'test',kind:'commercial',title:'Test',gallery:[]};
   const data={projects:[],photoCollections:[item]};
